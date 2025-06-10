@@ -9,9 +9,7 @@ app.set('port', process.env.API_PORT)
 app.use(express.json())
 
 // Rutas
-app.get('/', (req, res) => {
-    res.send('Hola mundo desde el backend')
-})
+  
 
 // Arrancar servidor
 app.listen(app.get('port'), () => {

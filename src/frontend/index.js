@@ -14,5 +14,5 @@ app.get('/', (req, res) => {
 
 // Arrancar servidor
 app.listen(app.get('port'), () => {
-    console.log(`WE activa, puerto: ${app.get('port')}`) 
+    console.log(`WEB activa, puerto: ${app.get('port')}`) 
 })
