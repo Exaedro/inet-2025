@@ -1,7 +1,7 @@
 import { createConnection } from "mysql2/promise";
 
 async function query(sql, values) {
-    const connection = createConnection({
+    const connection = await createConnection({
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
@@ -10,7 +10,7 @@ async function query(sql, values) {
 
     const [rows] = await connection.execute(sql, values);
 
-    connection.end();
+    await connection.end();
 
     return rows;
 }
