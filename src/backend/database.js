@@ -1,4 +1,4 @@
-import { createConnection } from "mysql2";
+import { createConnection } from "mysql2/promise";
 
 async function query(sql, values) {
     const connection = createConnection({
