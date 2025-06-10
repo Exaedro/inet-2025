@@ -9,7 +9,9 @@ app.set('port', process.env.API_PORT)
 app.use(express.json())
 
 // Rutas
-  
+import userRouter from './routes/user.routes.js'
+
+app.use('/api/users', userRouter)
 
 // Arrancar servidor
 app.listen(app.get('port'), () => {
