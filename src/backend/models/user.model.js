@@ -12,13 +12,9 @@ class UserModel {
     }
 
     static async register(first_name, last_name, email, password) {
-        try {
-            const [rows] = await query(`INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)`, [first_name, last_name, email, password])
+        const rows = await query(`INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)`, [first_name, last_name, email, password])
 
-            return rows
-        } catch(err) {
-            throw new Error('Error al registrar el usuario')
-        }
+        return rows
     }
 }
 

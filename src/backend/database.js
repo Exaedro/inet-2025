@@ -8,7 +8,7 @@ async function query(sql, values) {
         database: process.env.DB_NAME,
     });
 
-    const [rows] = await connection.execute(sql, values);
+    const [rows] = await connection.query(sql, values);
 
     await connection.end();
 
