@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'node:path';
 
 const app = express()
 
@@ -8,9 +9,11 @@ app.set('views', process.cwd() + '/src/frontend/views')
 app.set('view engine', 'ejs')
 
 // Rutas
-app.get('/', (req, res) => {
-    res.send('Hola mundo desde el frontend')
-})
+import indexRouter from './routes/index.routes.js'
+app.use('/', indexRouter)
+
+// Archivos estaticos
+app.use(express.static(path.join(process.cwd(), 'src/frontend/public')))
 
 // Arrancar servidor
 app.listen(app.get('port'), () => {
