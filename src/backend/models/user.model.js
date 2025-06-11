@@ -39,8 +39,10 @@ class UserModel {
         // Encriptación de contraseña
         const passwordHash = await encrypt(password)
 
+        const rows = await Validation.validateRegister({ first_name, last_name, email, password })
+
         await query(
-            `INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)`, 
+            `INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)`,
             [first_name, last_name, email, passwordHash]
         )
     }
@@ -52,6 +54,7 @@ class UserModel {
 class Validation {
     /**
      * Valida las entradas de registro de un nuevo usuario
+     * 
      * @param {Object} params - Parámetros de la solicitud
      * @param {string} params.email - Correo electrónico del usuario
      * @param {string} params.password - Contraseña del usuario
@@ -64,7 +67,7 @@ class Validation {
         if (rows.length === 0) {
             throw new ClientError('email not found')
         }
-        
+
         // Verificación de contraseña
         const passwordHash = await compareEncrypt(password, rows[0].password)
         if (!passwordHash) {
@@ -72,6 +75,27 @@ class Validation {
         }
 
         return rows
+    }
+
+    /**
+     * Valida las entradas de registro de un nuevo usuario
+     * 
+     * @param {Object} params - Parámetros de la solicitud
+     * @param {string} params.first_name - Nombre del usuario
+     * @param {string} params.last_name - Apellido del usuario
+     * @param {string} params.email - Correo electrónico del usuario
+     * @param {string} params.password - Contraseña del usuario
+     * @throws {ClientError} Si las entradas no son válidas
+     * @returns {void}
+     */
+    static async validateRegister({ first_name, last_name, email, password }) {
+        // Verificación de existencia de correo electrónico
+        const emailExists = await query(`SELECT * FROM users WHERE email = ?`, [email])
+        if (emailExists.length > 0) throw new ClientError('email already exists', 400) 
+
+        // Crear usuario
+        const passwordHash = await encrypt(password)
+        await query(`INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)`, [first_name, last_name, email, passwordHash])
     }
 }
 export default UserModel
