@@ -1,19 +1,45 @@
 import express from 'express';
+import dotenv from 'dotenv';
 
-const app = express()
+// Load environment variables
+dotenv.config();
+
+const app = express();
 
 // Configuración
-app.set('port', process.env.API_PORT)
+app.set('port', process.env.API_PORT || 3000);
 
 // Middlewares
-app.use(express.json())
+app.use(express.json());
 
-// Rutas
-import userRouter from './routes/user.routes.js'
+// Import routes
+import userRouter from './routes/user.routes.js';
+import testRouter from './routes/test.routes.js';
 
-app.use('/api/users', userRouter)
+// Routes
+app.use('/api/users', userRouter);
+app.use('/api', testRouter);
 
-// Arrancar servidor
-app.listen(app.get('port'), () => {
-    console.log(`API activa, puerto: ${app.get('port')}`)
-})
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: 'Something went wrong!',
+    error: process.env.NODE_ENV === 'development' ? err.message : {}
+  });
+});
+
+// Start server
+const server = app.listen(app.get('port'), () => {
+  console.log(`API activa, puerto: ${app.get('port')}`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('UNHANDLED REJECTION! Shutting down...');
+  console.error(err);
+  server.close(() => {
+    process.exit(1);
+  });
+});
