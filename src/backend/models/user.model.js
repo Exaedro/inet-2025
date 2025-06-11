@@ -46,7 +46,18 @@ class UserModel {
     }
 }
 
+/**
+ * Clase para validar las entradas de los usuarios
+ */
 class Validation {
+    /**
+     * Valida las entradas de registro de un nuevo usuario
+     * @param {Object} params - Parámetros de la solicitud
+     * @param {string} params.email - Correo electrónico del usuario
+     * @param {string} params.password - Contraseña del usuario
+     * @throws {ClientError} Si las entradas no son válidas
+     * @returns {Object[]} Resultado de la consulta
+     */
     static async validateLogin({ email, password }) {
         // Email existente
         const rows = await query(`SELECT * FROM users WHERE email = ?`, [email])
