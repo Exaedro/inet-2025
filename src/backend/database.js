@@ -1,12 +1,16 @@
+import { Client } from 'pg'
 
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_KEY
-
-const db = createClient(supabaseUrl, supabaseKey)
+const client = new Client({
+  host: 'glctguckdkgppfvqhzic.supabase.co',
+  port: 5432,
+  user: 'postgres',
+  password: 'eaASzy$G-C89Da4',
+  database: 'postgres'
+})
 
 export const query = async (sql, values) => {
-    const result = await db
+    await client.connect()
+    const result = await client.query(sql, values)
+    await client.end()
     return result.rows
 }
