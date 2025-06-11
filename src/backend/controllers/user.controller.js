@@ -59,6 +59,9 @@ class UserController {
     async login(req, res) {
         const { email, password } = req.body || {}
 
+        // Validación de campos
+        Validation.validateLogin({ email, password })
+
         try {
             const user = await this.userModel.login({ email, password })
             res.status(200).json({ 
@@ -126,6 +129,23 @@ class Validation {
         const passwordRegex = /^[a-zA-Z0-9]{8,}$/;
         if (!passwordRegex.test(password)) {
             throw new ClientError('password must contain at least one letter and one number', 400)
+        }
+    }
+
+    static validateLogin({ email, password }) {
+        // Validaciones de campos
+        if (!email || !password) {
+            throw new ClientError('email and password are required', 400)
+        }
+
+        if (typeof email !== 'string' || typeof password !== 'string') {
+            throw new ClientError('all fields must be strings', 400)
+        }
+
+        // Validaciones de correo electrónico
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            throw new ClientError('invalid email format', 400)
         }
     }
 }
