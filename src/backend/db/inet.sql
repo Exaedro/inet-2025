@@ -1,25 +1,21 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Jun 11, 2025 at 09:33 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PostgreSQL database dump
+-- Converted from MySQL to PostgreSQL
+-- Generated on: 2025-06-11 18:37:14-03:00
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `hola`
---
+-- Drop existing tables if they exist (commented out for safety)
+-- DROP TABLE IF EXISTS users CASCADE;
+-- DROP TABLE IF EXISTS services CASCADE;
+-- DROP TABLE IF EXISTS packages CASCADE;
+-- DROP TABLE IF EXISTS hotel_service CASCADE;
+-- DROP TABLE IF EXISTS hotels CASCADE;
+-- DROP TABLE IF EXISTS flights CASCADE;
+-- DROP TABLE IF EXISTS cities CASCADE;
+-- DROP TABLE IF EXISTS cart_items CASCADE;
+-- DROP TABLE IF EXISTS cart CASCADE;
+-- DROP TABLE IF EXISTS cars CASCADE;
+-- DROP TABLE IF EXISTS brands CASCADE;
+-- DROP TABLE IF EXISTS airports CASCADE;
+-- DROP TABLE IF EXISTS airlines CASCADE;
 
 -- --------------------------------------------------------
 
@@ -27,10 +23,10 @@ SET time_zone = "+00:00";
 -- Table structure for table `airlines`
 --
 
-CREATE TABLE `airlines` (
-  `id` int(10) NOT NULL,
-  `name` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE airlines (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100)
+);
 
 -- --------------------------------------------------------
 
@@ -38,12 +34,12 @@ CREATE TABLE `airlines` (
 -- Table structure for table `airports`
 --
 
-CREATE TABLE `airports` (
-  `id` int(10) NOT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `code` varchar(10) DEFAULT NULL,
-  `city_id` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE airports (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100),
+  code VARCHAR(10),
+  city_id INTEGER
+);
 
 -- --------------------------------------------------------
 
@@ -51,10 +47,10 @@ CREATE TABLE `airports` (
 -- Table structure for table `brands`
 --
 
-CREATE TABLE `brands` (
-  `id` int(20) NOT NULL,
-  `name` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE brands (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(50)
+);
 
 -- --------------------------------------------------------
 
@@ -62,14 +58,14 @@ CREATE TABLE `brands` (
 -- Table structure for table `cars`
 --
 
-CREATE TABLE `cars` (
-  `id` int(10) NOT NULL,
-  `brand_id` int(11) DEFAULT NULL,
-  `model` varchar(50) DEFAULT NULL,
-  `city_id` int(11) DEFAULT NULL,
-  `price_per_day` decimal(10,2) DEFAULT NULL,
-  `disponibility` tinyint(1) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE cars (
+  id SERIAL PRIMARY KEY,
+  brand_id INTEGER,
+  model VARCHAR(50),
+  city_id INTEGER,
+  price_per_day DECIMAL(10,2),
+  disponibility BOOLEAN
+);
 
 -- --------------------------------------------------------
 
@@ -77,11 +73,11 @@ CREATE TABLE `cars` (
 -- Table structure for table `cart`
 --
 
-CREATE TABLE `cart` (
-  `id` int(20) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE cart (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 -- --------------------------------------------------------
 
@@ -89,13 +85,13 @@ CREATE TABLE `cart` (
 -- Table structure for table `cart_items`
 --
 
-CREATE TABLE `cart_items` (
-  `id` int(20) NOT NULL,
-  `cart_id` int(11) DEFAULT NULL,
-  `type_item` varchar(20) DEFAULT NULL,
-  `item_id` int(11) DEFAULT NULL,
-  `amount` int(11) DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE cart_items (
+  id SERIAL PRIMARY KEY,
+  cart_id INTEGER,
+  type_item VARCHAR(20),
+  item_id INTEGER,
+  amount INTEGER DEFAULT 1
+);
 
 -- --------------------------------------------------------
 
@@ -103,11 +99,11 @@ CREATE TABLE `cart_items` (
 -- Table structure for table `cities`
 --
 
-CREATE TABLE `cities` (
-  `id` int(20) NOT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `country` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE cities (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100),
+  country VARCHAR(100)
+);
 
 -- --------------------------------------------------------
 
@@ -115,18 +111,18 @@ CREATE TABLE `cities` (
 -- Table structure for table `flights`
 --
 
-CREATE TABLE `flights` (
-  `id` int(20) NOT NULL,
-  `origin_id` int(11) DEFAULT NULL,
-  `destiny_id` int(11) DEFAULT NULL,
-  `out_date` date DEFAULT NULL,
-  `back_date` date DEFAULT NULL,
-  `airline_id` int(11) DEFAULT NULL,
-  `price` decimal(10,2) DEFAULT NULL,
-  `duration` time DEFAULT NULL,
-  `class` varchar(50) DEFAULT NULL,
-  `available_seats` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE flights (
+  id SERIAL PRIMARY KEY,
+  origin_id INTEGER,
+  destiny_id INTEGER,
+  out_date DATE,
+  back_date DATE,
+  airline_id INTEGER,
+  price DECIMAL(10,2),
+  duration TIME,
+  class VARCHAR(50),
+  available_seats INTEGER
+);
 
 -- --------------------------------------------------------
 
@@ -134,15 +130,15 @@ CREATE TABLE `flights` (
 -- Table structure for table `hotels`
 --
 
-CREATE TABLE `hotels` (
-  `id` int(20) NOT NULL,
-  `nombre` varchar(100) DEFAULT NULL,
-  `city_id` int(11) DEFAULT NULL,
-  `address` text DEFAULT NULL,
-  `stars` int(11) DEFAULT NULL,
-  `price_per_night` decimal(10,2) DEFAULT NULL,
-  `available_rooms` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE hotels (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(100),
+  city_id INTEGER,
+  address TEXT,
+  stars INTEGER,
+  price_per_night DECIMAL(10,2),
+  available_rooms INTEGER
+);
 
 -- --------------------------------------------------------
 
@@ -150,10 +146,11 @@ CREATE TABLE `hotels` (
 -- Table structure for table `hotel_service`
 --
 
-CREATE TABLE `hotel_service` (
-  `hotel_id` int(11) NOT NULL,
-  `service_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE hotel_service (
+  hotel_id INTEGER NOT NULL,
+  service_id INTEGER NOT NULL,
+  PRIMARY KEY (hotel_id, service_id)
+);
 
 -- --------------------------------------------------------
 
@@ -161,16 +158,16 @@ CREATE TABLE `hotel_service` (
 -- Table structure for table `packages`
 --
 
-CREATE TABLE `packages` (
-  `id` int(20) NOT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `description` text DEFAULT NULL,
-  `city_destiny_id` int(11) DEFAULT NULL,
-  `total_price` decimal(10,2) DEFAULT NULL,
-  `includes_flight` tinyint(1) DEFAULT NULL,
-  `includes_hotel` tinyint(1) DEFAULT NULL,
-  `includes_car` tinyint(1) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE packages (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100),
+  description TEXT,
+  city_destiny_id INTEGER,
+  total_price DECIMAL(10,2),
+  includes_flight BOOLEAN,
+  includes_hotel BOOLEAN,
+  includes_car BOOLEAN
+);
 
 -- --------------------------------------------------------
 
@@ -178,10 +175,10 @@ CREATE TABLE `packages` (
 -- Table structure for table `services`
 --
 
-CREATE TABLE `services` (
-  `id` int(20) NOT NULL,
-  ` name` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE services (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100)
+);
 
 -- --------------------------------------------------------
 
@@ -189,247 +186,81 @@ CREATE TABLE `services` (
 -- Table structure for table `users`
 --
 
-CREATE TABLE `users` (
-  `id` int(20) NOT NULL,
-  `first_name` text DEFAULT NULL,
-  `last_name` text NOT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  `password` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  first_name TEXT,
+  last_name TEXT NOT NULL,
+  email VARCHAR(100),
+  password TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 --
 -- Indexes for dumped tables
 --
 
---
--- Indexes for table `airlines`
---
-ALTER TABLE `airlines`
-  ADD PRIMARY KEY (`id`);
+-- Add foreign key constraints
+ALTER TABLE airports
+  ADD CONSTRAINT fk_airports_city FOREIGN KEY (city_id) REFERENCES cities(id);
 
---
--- Indexes for table `airports`
---
-ALTER TABLE `airports`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `ciudad_id` (`city_id`),
-  ADD KEY `city_id` (`city_id`);
+-- Fix flight constraints to reference airports table instead of cities
+ALTER TABLE flights
+  DROP CONSTRAINT IF EXISTS fk_flights_origin,
+  DROP CONSTRAINT IF EXISTS fk_flights_destiny,
+  DROP CONSTRAINT IF EXISTS fk_flights_airline;
 
---
--- Indexes for table `brands`
---
-ALTER TABLE `brands`
-  ADD PRIMARY KEY (`id`);
+-- Add foreign key constraints
+ALTER TABLE cars
+  ADD CONSTRAINT fk_cars_brand FOREIGN KEY (brand_id) REFERENCES brands(id),
+  ADD CONSTRAINT fk_cars_city FOREIGN KEY (city_id) REFERENCES cities(id);
 
---
--- Indexes for table `cars`
---
-ALTER TABLE `cars`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `marca_id` (`brand_id`,`city_id`),
-  ADD KEY `ciudad_id` (`city_id`),
-  ADD KEY `brand_id` (`brand_id`,`city_id`);
+ALTER TABLE cart
+  ADD CONSTRAINT fk_cart_user FOREIGN KEY (user_id) REFERENCES users(id);
 
---
--- Indexes for table `cart`
---
-ALTER TABLE `cart`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `usuario_id` (`user_id`),
-  ADD KEY `user_id` (`user_id`);
+ALTER TABLE cart_items
+  ADD CONSTRAINT fk_cart_items_cart FOREIGN KEY (cart_id) REFERENCES cart(id);
 
---
--- Indexes for table `cart_items`
---
-ALTER TABLE `cart_items`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `carrito_id` (`cart_id`,`item_id`),
-  ADD KEY `cart_id` (`cart_id`);
+ALTER TABLE flights
+  ADD CONSTRAINT fk_flights_origin FOREIGN KEY (origin_id) REFERENCES airports(id),
+  ADD CONSTRAINT fk_flights_destiny FOREIGN KEY (destiny_id) REFERENCES airports(id),
+  ADD CONSTRAINT fk_flights_airline FOREIGN KEY (airline_id) REFERENCES airlines(id);
 
---
--- Indexes for table `cities`
---
-ALTER TABLE `cities`
-  ADD PRIMARY KEY (`id`);
+ALTER TABLE hotels
+  ADD CONSTRAINT fk_hotels_city FOREIGN KEY (city_id) REFERENCES cities(id);
 
---
--- Indexes for table `flights`
---
-ALTER TABLE `flights`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `origen_id` (`origin_id`,`destiny_id`,`airline_id`),
-  ADD KEY `aerolinea_id` (`airline_id`),
-  ADD KEY `destino_id` (`destiny_id`);
+ALTER TABLE hotel_service
+  ADD CONSTRAINT fk_hotel_service_hotel FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+  ADD CONSTRAINT fk_hotel_service_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE;
 
---
--- Indexes for table `hotels`
---
-ALTER TABLE `hotels`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `ciudad_id` (`city_id`),
-  ADD KEY `city_id` (`city_id`);
+ALTER TABLE packages
+  ADD CONSTRAINT fk_packages_city FOREIGN KEY (city_destiny_id) REFERENCES cities(id);
 
---
--- Indexes for table `hotel_service`
---
-ALTER TABLE `hotel_service`
-  ADD PRIMARY KEY (`hotel_id`,`service_id`),
-  ADD KEY `servicio_id` (`service_id`);
+-- Create indexes for better performance
+CREATE INDEX idx_airports_city ON airports(city_id);
+CREATE INDEX idx_cars_brand ON cars(brand_id);
+CREATE INDEX idx_cars_city ON cars(city_id);
+CREATE INDEX idx_cart_user ON cart(user_id);
+CREATE INDEX idx_cart_items_cart ON cart_items(cart_id);
+CREATE INDEX idx_flights_origin ON flights(origin_id);
+CREATE INDEX idx_flights_destiny ON flights(destiny_id);
+CREATE INDEX idx_flights_airline ON flights(airline_id);
+CREATE INDEX idx_hotels_city ON hotels(city_id);
+CREATE INDEX idx_hotel_service_service ON hotel_service(service_id);
+CREATE INDEX idx_packages_city ON packages(city_destiny_id);
 
---
--- Indexes for table `packages`
---
-ALTER TABLE `packages`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `ciudad_destino_id` (`city_destiny_id`),
-  ADD KEY `city_destiny_id` (`city_destiny_id`);
+-- Add comments to tables and columns if needed
+COMMENT ON TABLE airlines IS 'Airlines information';
+COMMENT ON TABLE airports IS 'Airports information with city reference';
+COMMENT ON TABLE brands IS 'Car brands';
+COMMENT ON TABLE cars IS 'Available cars for rent';
+COMMENT ON TABLE cart IS 'Shopping cart information';
+COMMENT ON TABLE cart_items IS 'Items in the shopping cart';
+COMMENT ON TABLE cities IS 'Cities information';
+COMMENT ON TABLE flights IS 'Flight information';
+COMMENT ON TABLE hotels IS 'Hotels information';
+COMMENT ON TABLE hotel_service IS 'Many-to-many relationship between hotels and services';
+COMMENT ON TABLE packages IS 'Travel packages';
+COMMENT ON TABLE services IS 'Hotel services';
+COMMENT ON TABLE users IS 'User accounts';
 
---
--- Indexes for table `services`
---
-ALTER TABLE `services`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `airlines`
---
-ALTER TABLE `airlines`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `airports`
---
-ALTER TABLE `airports`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `brands`
---
-ALTER TABLE `brands`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `cars`
---
-ALTER TABLE `cars`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `cart`
---
-ALTER TABLE `cart`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `cart_items`
---
-ALTER TABLE `cart_items`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `cities`
---
-ALTER TABLE `cities`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `flights`
---
-ALTER TABLE `flights`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `hotels`
---
-ALTER TABLE `hotels`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `packages`
---
-ALTER TABLE `packages`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `services`
---
-ALTER TABLE `services`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `airports`
---
-ALTER TABLE `airports`
-  ADD CONSTRAINT `airports_ibfk_1` FOREIGN KEY (`city_id`) REFERENCES `cities` (`id`);
-
---
--- Constraints for table `cars`
---
-ALTER TABLE `cars`
-  ADD CONSTRAINT `cars_ibfk_1` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`),
-  ADD CONSTRAINT `cars_ibfk_2` FOREIGN KEY (`city_id`) REFERENCES `cities` (`id`);
-
---
--- Constraints for table `cart`
---
-ALTER TABLE `cart`
-  ADD CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`id`) REFERENCES `users` (`id`);
-
---
--- Constraints for table `cart_items`
---
-ALTER TABLE `cart_items`
-  ADD CONSTRAINT `cart_items_ibfk_1` FOREIGN KEY (`cart_id`) REFERENCES `cart` (`id`);
-
---
--- Constraints for table `flights`
---
-ALTER TABLE `flights`
-  ADD CONSTRAINT `flights_ibfk_1` FOREIGN KEY (`airline_id`) REFERENCES `airlines` (`id`),
-  ADD CONSTRAINT `flights_ibfk_2` FOREIGN KEY (`destiny_id`) REFERENCES `cities` (`id`),
-  ADD CONSTRAINT `flights_ibfk_3` FOREIGN KEY (`origin_id`) REFERENCES `cities` (`id`);
-
---
--- Constraints for table `hotels`
---
-ALTER TABLE `hotels`
-  ADD CONSTRAINT `hotels_ibfk_1` FOREIGN KEY (`city_id`) REFERENCES `cities` (`id`);
-
---
--- Constraints for table `hotel_service`
---
-ALTER TABLE `hotel_service`
-  ADD CONSTRAINT `hotel_service_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`),
-  ADD CONSTRAINT `hotel_service_ibfk_2` FOREIGN KEY (`hotel_id`) REFERENCES `hotels` (`id`);
-
---
--- Constraints for table `packages`
---
-ALTER TABLE `packages`
-  ADD CONSTRAINT `packages_ibfk_1` FOREIGN KEY (`city_destiny_id`) REFERENCES `cities` (`id`);
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- End of PostgreSQL schema
