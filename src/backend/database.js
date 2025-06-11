@@ -1,18 +1,11 @@
-import { createConnection } from "mysql2/promise";
+import { createClient } from "@libsql/client"; 
 
-async function query(sql, values) {
-    const connection = await createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-    });
+const db = createClient({
+    url: process.env.TURSO_URL,
+    authToken: process.env.TURSO_TOKEN
+})
 
-    const [rows] = await connection.query(sql, values);
-
-    await connection.end();
-
-    return rows;
+export const query = async (sql, values) => {
+    const result = await db.execute(sql, values)
+    return result.rows
 }
-
-export default query

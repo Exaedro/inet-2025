@@ -1,8 +1,4 @@
 import express from 'express';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 
@@ -12,15 +8,13 @@ app.set('port', process.env.API_PORT || 3000);
 // Middlewares
 app.use(express.json());
 
-// Import routes
+// Importar rutas
 import userRouter from './routes/user.routes.js';
-import testRouter from './routes/test.routes.js';
 
-// Routes
+// Rutas
 app.use('/api/users', userRouter);
-app.use('/api', testRouter);
 
-// Error handling middleware
+// Manejador de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -30,7 +24,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
+// Iniciar servidor
 const server = app.listen(app.get('port'), () => {
   console.log(`API activa, puerto: ${app.get('port')}`);
 });

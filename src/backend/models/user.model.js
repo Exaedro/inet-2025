@@ -1,4 +1,4 @@
-import query from '../database.js'
+import { query } from '../database.js'
 
 /**
  * Modelo de usuario que maneja las operaciones de base de datos relacionadas con usuarios
@@ -12,7 +12,7 @@ class UserModel {
      * @throws {Error} Si las credenciales son incorrectas
      */
     static async login(email, password) {
-        const [rows] = await query(`SELECT * FROM users WHERE email = ? AND password = ?`, [email, password])
+        const rows = await query(`SELECT * FROM users WHERE email = ? AND password = ?`, [email, password])
 
         if (rows.length === 0) {
             throw new Error('Usuario o contraseña incorrectos')
