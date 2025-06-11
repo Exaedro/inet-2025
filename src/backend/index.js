@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors'
 
 const app = express();
 
@@ -7,6 +8,7 @@ app.set('port', process.env.API_PORT || 3000);
 
 // Middlewares
 app.use(express.json());
+app.use(cors())
 
 // Importar rutas
 import userRouter from './routes/user.routes.js';
@@ -21,6 +23,7 @@ import hotelRouter from './routes/hotel.routes.js';
 import packageRouter from './routes/package.routes.js';
 import serviceRouter from './routes/service.routes.js';
 import testRouter from './routes/test.routes.js';
+import router from './routes/routes.test.js';
 
 // Rutas
 app.use('/api/users', userRouter);
@@ -34,7 +37,8 @@ app.use('/api/flights', flightRouter)
 app.use('/api/hotels', hotelRouter)
 app.use('/api/packages', packageRouter)
 app.use('/api/services', serviceRouter)
-app.use('/api/test', testRouter)
+// app.use('/api/test', testRouter)
+app.use('/api/test', router)
 
 // Manejador de errores
 app.use((err, req, res, next) => {

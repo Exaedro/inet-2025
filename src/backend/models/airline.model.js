@@ -1,4 +1,4 @@
-import { query } from '../database.js'
+import { supabase } from '../database.js'
 import ClientError from '../utils/clientError.js'
 
 /**
@@ -10,8 +10,13 @@ class AirlineModel {
      * @returns {Promise<Array>} Lista de aerolíneas
      */
     static async getAll() {
-        const rows = await query('SELECT * FROM airlines')
-        return rows
+        const { data: airlines, error } = await supabase
+            .from('airlines')
+            .select('*')
+            .order('name', { ascending: true })
+            
+        if (error) throw new Error(error.message)
+        return airlines
     }
 
     /**
@@ -20,11 +25,15 @@ class AirlineModel {
      * @returns {Promise<Object>} Datos de la aerolínea
      */
     static async getById(id) {
-        const [row] = await query('SELECT * FROM airlines WHERE id = ?', [id])
-        if (!row) {
-            throw new ClientError('Airline not found', 404)
-        }
-        return row
+        const { data: airline, error } = await supabase
+            .from('airlines')
+            .select('*')
+            .eq('id', id)
+            .single()
+            
+        if (error) throw new Error(error.message)
+        if (!airline) throw new ClientError('Airline not found', 404)
+        return airline
     }
 
     /**
@@ -33,11 +42,14 @@ class AirlineModel {
      * @returns {Promise<Object>} Resultado de la operación
      */
     static async create({ name }) {
-        const { insertId } = await query(
-            'INSERT INTO airlines (name) VALUES (?)',
-            [name]
-        )
-        return { id: insertId, name }
+        const { data: newAirline, error } = await supabase
+            .from('airlines')
+            .insert({ name })
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return newAirline
     }
 
     /**
@@ -48,11 +60,19 @@ class AirlineModel {
      */
     static async update(id, { name }) {
         await this.getById(id) // Verificar que existe
-        await query(
-            'UPDATE airlines SET name = ? WHERE id = ?',
-            [name, id]
-        )
-        return { id, name }
+        
+        const { data: updatedAirline, error } = await supabase
+            .from('airlines')
+            .update({ 
+                name,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return updatedAirline
     }
 
     /**
@@ -62,7 +82,13 @@ class AirlineModel {
      */
     static async delete(id) {
         await this.getById(id) // Verificar que existe
-        await query('DELETE FROM airlines WHERE id = ?', [id])
+        
+        const { error } = await supabase
+            .from('airlines')
+            .delete()
+            .eq('id', id)
+            
+        if (error) throw new Error(error.message)
         return true
     }
 
@@ -72,11 +98,14 @@ class AirlineModel {
      * @returns {Promise<Array>} Lista de aerolíneas que coinciden con la búsqueda
      */
     static async searchByName(name) {
-        const rows = await query(
-            'SELECT * FROM airlines WHERE name LIKE ?',
-            [`%${name}%`]
-        )
-        return rows
+        const { data: airlines, error } = await supabase
+            .from('airlines')
+            .select('*')
+            .ilike('name', `%${name}%`)
+            .order('name', { ascending: true })
+            
+        if (error) throw new Error(error.message)
+        return airlines
     }
 }
 

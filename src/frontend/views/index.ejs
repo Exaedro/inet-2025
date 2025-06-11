@@ -7,6 +7,17 @@
 </head>
 
 <body>
+
+    <script>
+        async function prueba() {
+            const data = await fetch('http://localhost:3000/api/users')
+            const json = await data.json()
+            console.log(json)
+        }
+
+        prueba()
+    </script>
+
     <header class="container">
         <h1>Tu Proxima Aventura Te Espera</h1>
         <h3>Descubre el mundo con nuestros servicios completos de viaje</h3>

@@ -1,144 +1,182 @@
-import { query } from '../database.js'
+import { supabase } from '../database.js'
 import ClientError from '../utils/clientError.js'
 
 class FlightModel {
     static async getAll() {
-        const rows = await query(`
-            SELECT f.*, 
-                   o.name as origin_name, o.code as origin_code,
-                   d.name as destination_name, d.code as destination_code,
-                   a.name as airline_name
-            FROM flights f
-            LEFT JOIN airports o ON f.origin_id = o.id
-            LEFT JOIN airports d ON f.destiny_id = d.id
-            LEFT JOIN airlines a ON f.airline_id = a.id
-        `)
-        return rows
+        const { data: flights, error } = await supabase
+            .from('flights')
+            .select(`
+                *,
+                origin:origin_id (id, name, code),
+                destination:destiny_id (id, name, code),
+                airline:airline_id (id, name)
+            `)
+            
+        if (error) throw new Error(error.message)
+        
+        return flights.map(flight => ({
+            ...flight,
+            origin_name: flight.origin?.name,
+            origin_code: flight.origin?.code,
+            destination_name: flight.destination?.name,
+            destination_code: flight.destination?.code,
+            airline_name: flight.airline?.name
+        }))
     }
 
     static async getById(id) {
-        const [row] = await query(`
-            SELECT f.*, 
-                   o.name as origin_name, o.code as origin_code,
-                   d.name as destination_name, d.code as destination_code,
-                   a.name as airline_name
-            FROM flights f
-            LEFT JOIN airports o ON f.origin_id = o.id
-            LEFT JOIN airports d ON f.destiny_id = d.id
-            LEFT JOIN airlines a ON f.airline_id = a.id
-            WHERE f.id = ?
-        `, [id])
-        if (!row) throw new ClientError('Flight not found', 404)
-        return row
+        const { data: flight, error } = await supabase
+            .from('flights')
+            .select(`
+                *,
+                origin:origin_id (id, name, code),
+                destination:destiny_id (id, name, code),
+                airline:airline_id (id, name)
+            `)
+            .eq('id', id)
+            .single()
+            
+        if (error) throw new Error(error.message)
+        if (!flight) throw new ClientError('Flight not found', 404)
+        
+        return {
+            ...flight,
+            origin_name: flight.origin?.name,
+            origin_code: flight.origin?.code,
+            destination_name: flight.destination?.name,
+            destination_code: flight.destination?.code,
+            airline_name: flight.airline?.name
+        }
     }
 
     static async search({ origin_id, destiny_id, out_date, class: flightClass }) {
-        let sql = `
-            SELECT f.*, 
-                   o.name as origin_name, o.code as origin_code,
-                   d.name as destination_name, d.code as destination_code,
-                   a.name as airline_name
-            FROM flights f
-            LEFT JOIN airports o ON f.origin_id = o.id
-            LEFT JOIN airports d ON f.destiny_id = d.id
-            LEFT JOIN airlines a ON f.airline_id = a.id
-            WHERE 1=1
-        `
-        const params = []
-
-        if (origin_id) {
-            sql += ' AND f.origin_id = ?'
-            params.push(origin_id)
-        }
-        if (destiny_id) {
-            sql += ' AND f.destiny_id = ?'
-            params.push(destiny_id)
-        }
-        if (out_date) {
-            sql += ' AND DATE(f.out_date) = ?'
-            params.push(out_date)
-        }
-        if (flightClass) {
-            sql += ' AND f.class = ?'
-            params.push(flightClass)
-        }
-
-        const rows = await query(sql, params)
-        return rows
+        let query = supabase
+            .from('flights')
+            .select(`
+                *,
+                origin:origin_id (id, name, code),
+                destination:destiny_id (id, name, code),
+                airline:airline_id (id, name)
+            `)
+            
+        if (origin_id) query = query.eq('origin_id', origin_id)
+        if (destiny_id) query = query.eq('destiny_id', destiny_id)
+        if (out_date) query = query.eq('out_date', out_date)
+        if (flightClass) query = query.eq('class', flightClass)
+        
+        const { data: flights, error } = await query
+        if (error) throw new Error(error.message)
+        
+        return flights.map(flight => ({
+            ...flight,
+            origin_name: flight.origin?.name,
+            origin_code: flight.origin?.code,
+            destination_name: flight.destination?.name,
+            destination_code: flight.destination?.code,
+            airline_name: flight.airline?.name
+        }))
     }
 
     static async create({
         origin_id, 
         destiny_id, 
         out_date, 
-        back_date, 
+        back_date = null, 
         airline_id, 
         price, 
         duration, 
-        flight_class, 
+        class: flightClass, 
         available_seats 
     }) {
-        const { insertId } = await query(
-            `INSERT INTO flights 
-                (origin_id, destiny_id, out_date, back_date, airline_id, price, duration, class, available_seats)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [origin_id, destiny_id, out_date, back_date, airline_id, price, duration, flight_class, available_seats]
-        )
-        return { 
-            id: insertId, 
-            origin_id, 
-            destiny_id, 
-            out_date, 
-            back_date, 
-            airline_id, 
-            price, 
-            duration, 
-            class: flight_class, 
-            available_seats 
-        }
+        const { data: flight, error } = await supabase
+            .from('flights')
+            .insert({
+                origin_id,
+                destiny_id,
+                out_date,
+                back_date,
+                airline_id,
+                price,
+                duration,
+                class: flightClass,
+                available_seats
+            })
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return this.getById(flight.id)
     }
 
     static async update(id, {
         origin_id, 
         destiny_id, 
         out_date, 
-        back_date, 
+        back_date = null, 
         airline_id, 
         price, 
         duration, 
-        flight_class, 
+        class: flightClass, 
         available_seats 
     }) {
         await this.getById(id)
-        await query(
-            `UPDATE flights 
-             SET origin_id = ?, destiny_id = ?, out_date = ?, back_date = ?, 
-                 airline_id = ?, price = ?, duration = ?, class = ?, available_seats = ?
-             WHERE id = ?`,
-            [origin_id, destiny_id, out_date, back_date, airline_id, price, duration, flight_class, available_seats, id]
-        )
-        return { 
-            id, 
-            origin_id, 
-            destiny_id, 
-            out_date, 
-            back_date, 
-            airline_id, 
-            price, 
-            duration, 
-            class: flight_class, 
-            available_seats 
-        }
+        
+        const { data: flight, error } = await supabase
+            .from('flights')
+            .update({
+                origin_id,
+                destiny_id,
+                out_date,
+                back_date,
+                airline_id,
+                price,
+                duration,
+                class: flightClass,
+                available_seats
+            })
+            .eq('id', id)
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return this.getById(flight.id)
     }
 
     static async delete(id) {
+        // Verify flight exists
         await this.getById(id)
-        await query('DELETE FROM flights WHERE id = ?', [id])
+        
+        const { error } = await supabase
+            .from('flights')
+            .delete()
+            .eq('id', id)
+            
+        if (error) throw new Error(error.message)
+        
         return true
     }
 
     static async updateSeats(id, seatsChange) {
-        await query('UPDATE flights SET available_seats = available_seats + ? WHERE id = ?', [seatsChange, id])
+        const { data: flight, error } = await supabase
+            .from('flights')
+            .select('available_seats')
+            .eq('id', id)
+            .single()
+            
+        if (error) throw new Error(error.message)
+        
+        const newSeats = flight.available_seats + seatsChange
+        
+        const { error: updateError } = await supabase
+            .from('flights')
+            .update({ 
+                available_seats: newSeats,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            
+        if (updateError) throw new Error(updateError.message)
+        
         return this.getById(id)
     }
 }
