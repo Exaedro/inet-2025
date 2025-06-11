@@ -1,19 +1,27 @@
-import { query } from '../database.js'
+import { supabase } from '../database.js'
 import ClientError from '../utils/clientError.js'
 
 class CartModel {
     static async getByUserId(userId) {
-        const [cart] = await query('SELECT * FROM cart WHERE user_id = ?', [userId])
-        if (!cart) throw new ClientError('Cart not found', 404)
-        return cart
+        const { data, error } = await supabase
+            .from('cart')
+            .select('*')
+            .eq('user_id', userId)
+            .single()
+            
+        if (error || !data) throw new ClientError('Cart not found', 404)
+        return data
     }
 
     static async create(userId) {
-        const { insertId } = await query(
-            'INSERT INTO cart (user_id) VALUES (?)',
-            [userId]
-        )
-        return { id: insertId, user_id: userId }
+        const { data, error } = await supabase
+            .from('cart')
+            .insert({ user_id: userId })
+            .select()
+            .single()
+            
+        if (error) throw new ClientError(`Error creating cart: ${error.message}`, 500)
+        return data
     }
 
     static async getOrCreateCart(userId) {
@@ -28,16 +36,29 @@ class CartModel {
     }
 
     static async getCartWithItems(userId) {
-        const [cart] = await query(
-            `SELECT c.*, 
-                    ci.id as item_id, ci.type_item, ci.item_id as related_item_id, ci.amount
-             FROM cart c
-             LEFT JOIN cart_items ci ON c.id = ci.cart_id
-             WHERE c.user_id = ?`,
-            [userId]
-        )
-        if (!cart) throw new ClientError('Cart not found', 404)
-        return cart
+        const { data: cart, error: cartError } = await supabase
+            .from('cart')
+            .select('*')
+            .eq('user_id', userId)
+            .single()
+            
+        if (cartError || !cart) {
+            throw new ClientError('Cart not found', 404)
+        }
+        
+        const { data: items, error: itemsError } = await supabase
+            .from('cart_items')
+            .select('*')
+            .eq('cart_id', cart.id)
+            
+        if (itemsError) {
+            throw new ClientError('Error fetching cart items', 500)
+        }
+        
+        return {
+            ...cart,
+            items: items || []
+        }
     }
 }
 
