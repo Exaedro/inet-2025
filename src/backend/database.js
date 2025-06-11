@@ -1,11 +1,12 @@
-import { createClient } from "@libsql/client"; 
 
-const db = createClient({
-    url: process.env.TURSO_URL,
-    authToken: process.env.TURSO_TOKEN
-})
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_KEY
+
+const db = createClient(supabaseUrl, supabaseKey)
 
 export const query = async (sql, values) => {
-    const result = await db.execute(sql, values)
+    const result = await db
     return result.rows
 }
