@@ -1,3 +1,5 @@
+import ClientError from '../utils/clientError.js'
+
 /**
  * Controlador para manejar las operaciones relacionadas con usuarios
  */
@@ -25,18 +27,22 @@ class UserController {
     async register(req, res) {
         const { first_name, last_name, email, password } = req.body
 
+        // Validación de campos
+        Validation.validateRegister({ first_name, last_name, email, password })
+
         try {
-            const result = await this.userModel.register(first_name, last_name, email, password)
+            const result = await this.userModel.register({ first_name, last_name, email, password })
+
             res.status(201).json({ 
                 success: true, 
-                message: 'Usuario registrado exitosamente',
+                message: 'user registered successfully',
                 data: result 
             })
         } catch(err) {
             console.error('Error en register:', err)
             res.status(400).json({ 
                 success: false, 
-                message: err.message || 'Error al registrar el usuario' 
+                message: err.message || 'error registering user'
             })
         }
     }
@@ -51,21 +57,75 @@ class UserController {
      * @returns {Promise<void>} No devuelve ningún valor directamente, pero envía una respuesta JSON
      */
     async login(req, res) {
-        const { email, password } = req.body
+        const { email, password } = req.body || {}
 
         try {
-            const user = await this.userModel.login(email, password)
+            const user = await this.userModel.login({ email, password })
             res.status(200).json({ 
                 success: true, 
-                message: 'Inicio de sesión exitoso',
+                message: 'login successful',
                 data: user 
             })
         } catch(err) {
-            console.error('Error en login:', err)
+            console.error('Error en login:', err.message)
             res.status(401).json({ 
                 success: false, 
-                message: err.message || 'Error al iniciar sesión' 
+                message: err.message || 'error logging in'
             })
+        }
+    }
+}
+
+/**
+ * Clase para validar las entradas de los usuarios
+ */
+class Validation {
+    /**
+     * Valida las entradas de registro de un nuevo usuario
+     * @param {Object} params - Parámetros de la solicitud
+     * @param {string} params.first_name - Nombre del usuario
+     * @param {string} params.last_name - Apellido del usuario
+     * @param {string} params.email - Correo electrónico del usuario
+     * @param {string} params.password - Contraseña del usuario
+     * @throws {ClientError} Si las entradas no son válidas
+     * @returns {void}
+     */
+    static validateRegister({ first_name, last_name, email, password }) {
+        // Validaciones de campos
+        if (
+            !first_name || 
+            !last_name || 
+            !email || 
+            !password || 
+            email.length == 0 || 
+            password.length == 0
+        ) { 
+            throw new ClientError('all fields are required', 400)
+        }
+
+        if (first_name.length < 3 || last_name.length < 3) {
+            throw new ClientError('first and last name are too short', 400)
+        }
+
+        if (typeof first_name !== 'string' || typeof last_name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
+            throw new ClientError('all fields must be strings', 400)
+        }
+
+        // Validaciones de contraseña
+        if (password.length < 8) {
+            throw new ClientError('password must be at least 8 characters long', 400)
+        }
+
+        // Validaciones de correo electrónico
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            throw new ClientError('invalid email format', 400)
+        }
+
+        // Validaciones de password
+        const passwordRegex = /^[a-zA-Z0-9]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            throw new ClientError('password must contain at least one letter and one number', 400)
         }
     }
 }

@@ -6,8 +6,8 @@ import { hash, compare } from 'bcrypt'
  * @param {string} text - texto a encriptar 
  * @returns hashedstring
  */
-export default function encrypt(text) {
-    return hash(text, 10)
+export async function encrypt(text) {
+    return await hash(text, 10)
 }
 
 /**
@@ -17,6 +17,6 @@ export default function encrypt(text) {
  * @param {string} hashedstring - texto encriptado
  * @returns boolean
  */
-export default function compareEncrypt(text, hashedstring) {
-    return compare(text, hashedstring)
+export async function compareEncrypt(text, hashedstring) {
+    return await compare(text, hashedstring)
 }
