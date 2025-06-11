@@ -3,10 +3,8 @@ import { supabase } from '../database.js'
 
 const testRouter = Router()
 
-// Test Supabase connection and list tables
 testRouter.get('/test', async (req, res) => {
     try {
-        // 1. First, try to list all tables (using a raw query)
         const { data: tables, error: tablesError } = await supabase
             .from('pg_tables')
             .select('tablename')
@@ -16,13 +14,11 @@ testRouter.get('/test', async (req, res) => {
             console.error('Error listing tables:', tablesError)
         }
         
-        // 2. Try to get users
         const { data: users, error: usersError } = await supabase
             .from('users')
             .select('*')
             .limit(1)
             
-        // 3. Insert a test user
         const testEmail = `test${Date.now()}@example.com`
         const { data: newUser, error: insertError } = await supabase
             .from('users')
@@ -34,7 +30,6 @@ testRouter.get('/test', async (req, res) => {
             }])
             .select()
             
-        // 4. Get the user we just inserted
         const { data: insertedUser, error: getError } = await supabase
             .from('users')
             .select('*')
