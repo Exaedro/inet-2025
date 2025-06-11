@@ -20,6 +20,7 @@ import flightRouter from './routes/flight.routes.js';
 import hotelRouter from './routes/hotel.routes.js';
 import packageRouter from './routes/package.routes.js';
 import serviceRouter from './routes/service.routes.js';
+import testRouter from './routes/test.routes.js';
 
 // Rutas
 app.use('/api/users', userRouter);
@@ -33,6 +34,7 @@ app.use('/api/flights', flightRouter)
 app.use('/api/hotels', hotelRouter)
 app.use('/api/packages', packageRouter)
 app.use('/api/services', serviceRouter)
+app.use('/api/test', testRouter)
 
 // Manejador de errores
 app.use((err, req, res, next) => {

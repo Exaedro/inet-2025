@@ -1,16 +1,14 @@
-import { Client } from 'pg'
+import { createClient } from '@supabase/supabase-js'
 
-const client = new Client({
-  host: 'glctguckdkgppfvqhzic.supabase.co',
-  port: 5432,
-  user: 'postgres',
-  password: 'eaASzy$G-C89Da4',
-  database: 'postgres'
-})
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_KEY
 
-export const query = async (sql, values) => {
-    await client.connect()
-    const result = await client.query(sql, values)
-    await client.end()
-    return result.rows
+if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase configuration. Please set SUPABASE_URL and SUPABASE_KEY in your .env file.')
+}
+
+export const supabase = createClient(supabaseUrl, supabaseKey)
+
+export const query = async (sql, values = []) => {
+    throw new Error('Direct SQL queries are not supported with Supabase. Use the Supabase client directly.')
 }
