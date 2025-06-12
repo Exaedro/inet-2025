@@ -106,18 +106,6 @@ packageRouter.delete('/:id', asyncHandler(async (req, res) => {
 }))
 
 /**
- * @route PATCH /:id/availability
- * @desc Actualiza la disponibilidad de un paquete
- * @access Privado (solo administradores)
- * @param {string} req.params.id - ID del paquete
- * @param {boolean} req.body.is_available - Nuevo estado de disponibilidad
- * @returns {Object} Paquete con disponibilidad actualizada
- */
-packageRouter.patch('/:id/availability', asyncHandler(async (req, res) => {
-    await packageController.updatePackageAvailability(req, res)
-}))
-
-/**
  * Middleware para manejo centralizado de errores
  * @param {Error} err - Objeto de error
  * @param {Object} req - Objeto de solicitud de Express

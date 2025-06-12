@@ -64,32 +64,26 @@ class PackageController {
             const {
                 name,
                 description,
-                hotel_id,
-                flight_go_id,
-                flight_back_id,
-                nights,
+                city_destiny_id,
                 total_price,
-                discount = 0,
-                max_people,
-                is_available = true
+                includes_flight,
+                includes_hotel,
+                includes_car
             } = req.body
             
             // Validate required fields
-            if (!name || !hotel_id || !flight_go_id || !nights || !total_price || !max_people) {
+            if (!name || !city_destiny_id || !total_price || !includes_flight || !includes_hotel || !includes_car) {
                 throw new ClientError('Missing required fields', 400)
             }
             
             const newPackage = await this.packageModel.create({
                 name,
                 description: description || '',
-                hotel_id: Number(hotel_id),
-                flight_go_id: Number(flight_go_id),
-                flight_back_id: flight_back_id ? Number(flight_back_id) : null,
-                nights: Number(nights),
+                city_destiny_id: Number(city_destiny_id),
                 total_price: Number(total_price),
-                discount: Number(discount),
-                max_people: Number(max_people),
-                is_available: Boolean(is_available)
+                includes_flight: Boolean(includes_flight),
+                includes_hotel: Boolean(includes_hotel),
+                includes_car: Boolean(includes_car)
             })
             
             res.status(201).json({ 
@@ -112,14 +106,11 @@ class PackageController {
             const {
                 name,
                 description,
-                hotel_id,
-                flight_go_id,
-                flight_back_id,
-                nights,
+                city_destiny_id,
                 total_price,
-                discount,
-                max_people,
-                is_available
+                includes_flight,
+                includes_hotel,
+                includes_car
             } = req.body
             
             const updatedPackage = await this.packageModel.update(
@@ -127,14 +118,11 @@ class PackageController {
                 {
                     name,
                     description,
-                    hotel_id: hotel_id ? Number(hotel_id) : undefined,
-                    flight_go_id: flight_go_id ? Number(flight_go_id) : undefined,
-                    flight_back_id: flight_back_id !== undefined ? (flight_back_id ? Number(flight_back_id) : null) : undefined,
-                    nights: nights ? Number(nights) : undefined,
+                    city_destiny_id: city_destiny_id ? Number(city_destiny_id) : undefined,
                     total_price: total_price ? Number(total_price) : undefined,
-                    discount: discount !== undefined ? Number(discount) : undefined,
-                    max_people: max_people ? Number(max_people) : undefined,
-                    is_available: is_available !== undefined ? Boolean(is_available) : undefined
+                    includes_flight: includes_flight !== undefined ? Boolean(includes_flight) : undefined,
+                    includes_hotel: includes_hotel !== undefined ? Boolean(includes_hotel) : undefined,
+                    includes_car: includes_car !== undefined ? Boolean(includes_car) : undefined
                 }
             )
             
@@ -163,34 +151,6 @@ class PackageController {
             res.status(status).json({ 
                 success: false, 
                 message: error.message || 'Error deleting package' 
-            })
-        }
-    }
-
-    async updatePackageAvailability(req, res) {
-        try {
-            const { is_available } = req.body
-            
-            if (is_available === undefined) {
-                throw new ClientError('is_available is required', 400)
-            }
-            
-            const pkg = await this.packageModel.updateAvailability(
-                Number(req.params.id),
-                Boolean(is_available)
-            )
-            
-            res.json({ 
-                success: true, 
-                message: 'Package availability updated successfully',
-                data: pkg 
-            })
-        } catch (error) {
-            console.error('Error updating package availability:', error)
-            const status = error.statusCode || 500
-            res.status(status).json({ 
-                success: false, 
-                message: error.message || 'Error updating package availability' 
             })
         }
     }
