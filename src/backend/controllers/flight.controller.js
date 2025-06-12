@@ -32,12 +32,7 @@ class FlightController {
     async searchFlights(req, res) {
         try {
             const { origin_id, destiny_id, out_date, class: flightClass } = req.query
-            
-            // Validate required parameters
-            if (!origin_id || !destiny_id || !out_date) {
-                throw new ClientError('Origin ID, destination ID, and out date are required', 400)
-            }
-            
+
             const flights = await this.flightModel.search({
                 origin_id: Number(origin_id),
                 destiny_id: Number(destiny_id),
@@ -71,10 +66,8 @@ class FlightController {
             } = req.body
             
             // Validate required fields
-            if (!origin_id || !destiny_id || !out_date || !airline_id || !price || !duration || !flightClass || available_seats === undefined) {
-                throw new ClientError('All fields are required', 400)
-            }
-            
+            Validation.validateCreateFlight(req.body)
+
             const newFlight = await this.flightModel.create({
                 origin_id: Number(origin_id),
                 destiny_id: Number(destiny_id),
@@ -164,32 +157,18 @@ class FlightController {
             })
         }
     }
+}
 
-    async updateFlightSeats(req, res) {
-        try {
-            const { seatsChange } = req.body
-            
-            if (seatsChange === undefined) {
-                throw new ClientError('seatsChange is required', 400)
-            }
-            
-            const flight = await this.flightModel.updateSeats(
-                Number(req.params.id),
-                Number(seatsChange)
-            )
-            
-            res.json({ 
-                success: true, 
-                message: 'Flight seats updated successfully',
-                data: flight 
-            })
-        } catch (error) {
-            console.error('Error updating flight seats:', error)
-            const status = error.statusCode || 500
-            res.status(status).json({ 
-                success: false, 
-                message: error.message || 'Error updating flight seats' 
-            })
+class Validation {
+    static validateCreateFlight(data) {
+        const { origin_id, destiny_id, out_date, back_date, airline_id, price, duration, class: flightClass, available_seats } = data
+        
+        if (!origin_id || !destiny_id || !out_date || !airline_id || !price || !duration || !flightClass || available_seats === undefined) {
+            throw new ClientError('All fields are required', 400)
+        }
+        
+        if (origin_id == destiny_id) {
+            throw new ClientError('Origin and destiny airports cannot be the same', 400)    
         }
     }
 }

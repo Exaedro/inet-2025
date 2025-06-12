@@ -102,18 +102,6 @@ flightRouter.delete('/:id', asyncHandler(async (req, res) => {
 }))
 
 /**
- * @route PATCH /:id/seats
- * @desc Actualiza la disponibilidad de asientos de un vuelo
- * @access Privado
- * @param {string} req.params.id - ID del vuelo
- * @param {number} req.body.seats_change - Cambio en el número de asientos (puede ser negativo)
- * @returns {Object} Vuelo con disponibilidad actualizada
- */
-flightRouter.patch('/:id/seats', asyncHandler(async (req, res) => {
-    await flightController.updateFlightSeats(req, res)
-}))
-
-/**
  * Middleware para manejo centralizado de errores
  * @param {Error} err - Objeto de error
  * @param {Object} req - Objeto de solicitud de Express
