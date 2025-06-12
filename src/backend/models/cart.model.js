@@ -7,19 +7,28 @@ class CartModel {
             .from('cart')
             .select('*')
             .eq('user_id', userId)
-            .single()
-            
-        if (error || !data) throw new ClientError('Cart not found', 404)
+            .maybeSingle() 
+
+        if (error) throw new Error(error.message)
+        if (!data) throw new ClientError('Cart not found', 404)
         return data
     }
 
     static async create(userId) {
+        const { data: exists, error: existsError } = await supabase
+            .from('cart')
+            .select('*')
+            .eq('user_id', userId)
+            .maybeSingle()
+        if (existsError) throw new Error(existsError.message)
+        if (exists) throw new ClientError('Cart already exists for user', 400)
+
         const { data, error } = await supabase
             .from('cart')
             .insert({ user_id: userId })
             .select()
             .single()
-            
+
         if (error) throw new ClientError(`Error creating cart: ${error.message}`, 500)
         return data
     }
@@ -32,32 +41,6 @@ class CartModel {
                 return await this.create(userId)
             }
             throw error
-        }
-    }
-
-    static async getCartWithItems(userId) {
-        const { data: cart, error: cartError } = await supabase
-            .from('cart')
-            .select('*')
-            .eq('user_id', userId)
-            .single()
-            
-        if (cartError || !cart) {
-            throw new ClientError('Cart not found', 404)
-        }
-        
-        const { data: items, error: itemsError } = await supabase
-            .from('cart_items')
-            .select('*')
-            .eq('cart_id', cart.id)
-            
-        if (itemsError) {
-            throw new ClientError('Error fetching cart items', 500)
-        }
-        
-        return {
-            ...cart,
-            items: items || []
         }
     }
 }
