@@ -21,17 +21,19 @@ class UserController {
      * @param {string} req.body.last_name - Apellido del usuario
      * @param {string} req.body.email - Correo electrónico del usuario
      * @param {string} req.body.password - Contraseña del usuario
+     * @param {string} req.body.phone - Telefono del usuario
+     * @param {string} req.body.address - Direccion del usuario
      * @param {Object} res - Objeto de respuesta de Express
      * @returns {Promise<void>} No devuelve ningún valor directamente, pero envía una respuesta JSON
      */
     async register(req, res) {
-        const { first_name, last_name, email, password } = req.body
+        const { first_name, last_name, email, password, phone, address } = req.body
 
         // Validación de campos
-        Validation.validateRegister({ first_name, last_name, email, password })
+        Validation.validateRegister({ first_name, last_name, email, password, phone, address })
 
         try {
-            const result = await this.userModel.register({ first_name, last_name, email, password })
+            const result = await this.userModel.register({ first_name, last_name, email, password, phone, address })
 
             res.status(201).json({ 
                 success: true, 
@@ -90,16 +92,20 @@ class Validation {
      * @param {string} params.last_name - Apellido del usuario
      * @param {string} params.email - Correo electrónico del usuario
      * @param {string} params.password - Contraseña del usuario
+     * @param {string} params.phone - Telefono del usuario
+     * @param {string} params.address - Direccion del usuario
      * @throws {ClientError} Si las entradas no son válidas
      * @returns {void}
      */
-    static validateRegister({ first_name, last_name, email, password }) {
+    static validateRegister({ first_name, last_name, email, password, phone, address }) {
         // Validaciones de campos
         if (
             !first_name || 
             !last_name || 
             !email || 
             !password || 
+            !phone || 
+            !address || 
             email.length == 0 || 
             password.length == 0
         ) { 

@@ -17,7 +17,7 @@ class UserModel {
         // Buscar usuario por email
         const { data: user, error } = await supabase
             .from('users')
-            .select('id, first_name, last_name, email, password, created_at')
+            .select('id, first_name, last_name, email, password, phone, address, created_at')
             .eq('email', email)
             .single()
 
@@ -43,9 +43,11 @@ class UserModel {
      * @param {string} userData.last_name - Apellido del usuario (requerido)
      * @param {string} userData.email - Correo electrónico del usuario
      * @param {string} userData.password - Contraseña del usuario
+     * @param {string} userData.phone - Telefono del usuario
+     * @param {string} userData.address - Direccion del usuario
      * @returns {Promise<Object>} Usuario creado
      */
-    static async register({ first_name = null, last_name, email, password }) {
+    static async register({ first_name = null, last_name, email, password, phone, address }) {
         // Validar campos requeridos según el esquema
         if (!last_name || !email || !password) {
             throw new ClientError('Last name, email and password are required', 400)
@@ -74,11 +76,12 @@ class UserModel {
                     first_name,
                     last_name,
                     email,
-                    password: hashedPassword
-                    // created_at se genera automáticamente por DEFAULT CURRENT_TIMESTAMP
+                    password: hashedPassword,
+                    phone,
+                    address
                 }
             ])
-            .select('id, first_name, last_name, email, created_at')
+            .select('id, first_name, last_name, email, phone, address, created_at')
             .single()
 
         if (error) {
@@ -96,7 +99,7 @@ class UserModel {
     static async getProfile(userId) {
         const { data: user, error } = await supabase
             .from('users')
-            .select('id, first_name, last_name, email, created_at')
+            .select('id, first_name, last_name, email, phone, address, created_at')
             .eq('id', userId)
             .single()
 
@@ -124,7 +127,7 @@ class UserModel {
             .from('users')
             .update(updates)
             .eq('id', userId)
-            .select('id, first_name, last_name, email, created_at')
+            .select('id, first_name, last_name, email, phone, address, created_at')
             .single()
 
         if (error) {
