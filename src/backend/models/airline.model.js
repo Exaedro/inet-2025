@@ -42,12 +42,20 @@ class AirlineModel {
      * @returns {Promise<Object>} Resultado de la operación
      */
     static async create({ name }) {
+        // Validar que no exista la aerolínea
+        const { data: exists, error: existsError } = await supabase
+            .from('airlines')
+            .select('*')
+            .eq('name', name)
+            .maybeSingle();
+        if (existsError) throw new Error('Error checking for duplicates');
+        if (exists) throw new ClientError('Airline already exists', 400);
+
         const { data: newAirline, error } = await supabase
             .from('airlines')
             .insert({ name })
             .select()
             .single()
-            
         if (error) throw new Error(error.message)
         return newAirline
     }
@@ -59,8 +67,15 @@ class AirlineModel {
      * @returns {Promise<Object>} Resultado de la operación
      */
     static async update(id, { name }) {
-        await this.getById(id) // Verificar que existe
-        
+        // Validar existencia antes de actualizar
+        const { data: exists, error: existsError } = await supabase
+            .from('airlines')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+        if (existsError) throw new Error('Error checking airline existence');
+        if (!exists) throw new ClientError('Airline not found', 404);
+
         const { data: updatedAirline, error } = await supabase
             .from('airlines')
             .update({ 
@@ -70,7 +85,6 @@ class AirlineModel {
             .eq('id', id)
             .select()
             .single()
-            
         if (error) throw new Error(error.message)
         return updatedAirline
     }
@@ -81,13 +95,19 @@ class AirlineModel {
      * @returns {Promise<boolean>} true si se eliminó correctamente
      */
     static async delete(id) {
-        await this.getById(id) // Verificar que existe
-        
+        // Validar existencia antes de eliminar
+        const { data: exists, error: existsError } = await supabase
+            .from('airlines')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+        if (existsError) throw new Error('Error checking airline existence');
+        if (!exists) throw new ClientError('Airline not found', 404);
+
         const { error } = await supabase
             .from('airlines')
             .delete()
             .eq('id', id)
-            
         if (error) throw new Error(error.message)
         return true
     }
