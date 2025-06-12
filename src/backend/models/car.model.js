@@ -43,6 +43,17 @@ class CarModel {
     }
 
     static async create({ brand_id, model, city_id, price_per_day, disponibility = true }) {
+        // Validar que no exista un auto igual (modelo, ciudad, marca)
+        const { data: exists, error: existsError } = await supabase
+            .from('cars')
+            .select('*')
+            .eq('brand_id', brand_id)
+            .eq('model', model)
+            .eq('city_id', city_id)
+            .maybeSingle();
+        if (existsError) throw new Error('Error checking for duplicates');
+        if (exists) throw new ClientError('Car already exists for this model, brand and city', 400);
+
         const { data: newCar, error } = await supabase
             .from('cars')
             .insert({
@@ -54,14 +65,20 @@ class CarModel {
             })
             .select()
             .single()
-            
         if (error) throw new Error(error.message)
         return this.getById(newCar.id)
     }
 
     static async update(id, { brand_id, model, city_id, price_per_day, disponibility }) {
-        await this.getById(id)
-        
+        // Validar existencia antes de actualizar
+        const { data: exists, error: existsError } = await supabase
+            .from('cars')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+        if (existsError) throw new Error('Error checking car existence');
+        if (!exists) throw new ClientError('Car not found', 404);
+
         const { data: updatedCar, error } = await supabase
             .from('cars')
             .update({
@@ -74,19 +91,24 @@ class CarModel {
             .eq('id', id)
             .select()
             .single()
-            
         if (error) throw new Error(error.message)
         return this.getById(updatedCar.id)
     }
 
     static async delete(id) {
-        await this.getById(id)
-        
+        // Validar existencia antes de eliminar
+        const { data: exists, error: existsError } = await supabase
+            .from('cars')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+        if (existsError) throw new Error('Error checking car existence');
+        if (!exists) throw new ClientError('Car not found', 404);
+
         const { error } = await supabase
             .from('cars')
             .delete()
             .eq('id', id)
-            
         if (error) throw new Error(error.message)
         return true
     }
