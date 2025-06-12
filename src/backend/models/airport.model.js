@@ -45,6 +45,16 @@ class AirportModel {
      * @returns {Promise<Object>} Resultado de la operación
      */
     static async create({ name, code, city_id }) {
+        // Validar que no exista aeropuerto con el mismo código o nombre en la ciudad
+        const { data: exists, error: existsError } = await supabase
+            .from('airports')
+            .select('*')
+            .eq('code', code)
+            .eq('city_id', city_id)
+            .maybeSingle();
+        if (existsError) throw new Error('Error checking for duplicates');
+        if (exists) throw new ClientError('Airport already exists for this code and city', 400);
+
         const { data: newAirport, error } = await supabase
             .from('airports')
             .insert({
@@ -55,7 +65,6 @@ class AirportModel {
             })
             .select()
             .single()
-            
         if (error) throw new Error(error.message)
         return newAirport
     }
@@ -67,8 +76,15 @@ class AirportModel {
      * @returns {Promise<Object>} Resultado de la operación
      */
     static async update(id, { name, code, city_id }) {
-        await this.getById(id) // Verify it exists
-        
+        // Validar existencia antes de actualizar
+        const { data: exists, error: existsError } = await supabase
+            .from('airports')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+        if (existsError) throw new Error('Error checking airport existence');
+        if (!exists) throw new ClientError('Airport not found', 404);
+
         const { data: updatedAirport, error } = await supabase
             .from('airports')
             .update({
@@ -80,7 +96,6 @@ class AirportModel {
             .eq('id', id)
             .select()
             .single()
-            
         if (error) throw new Error(error.message)
         return updatedAirport
     }
@@ -91,13 +106,19 @@ class AirportModel {
      * @returns {Promise<boolean>} True si se eliminó correctamente
      */
     static async delete(id) {
-        await this.getById(id) // Verificar que existe
-        
+        // Validar existencia antes de eliminar
+        const { data: exists, error: existsError } = await supabase
+            .from('airports')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+        if (existsError) throw new Error('Error checking airport existence');
+        if (!exists) throw new ClientError('Airport not found', 404);
+
         const { error } = await supabase
             .from('airports')
             .delete()
             .eq('id', id)
-            
         if (error) throw new Error(error.message)
         return true
     }
