@@ -1,4 +1,4 @@
-import { query } from '../database.js'
+import { supabase } from '../database.js'
 import ClientError from '../utils/clientError.js'
 
 /**
@@ -10,8 +10,13 @@ class AirportModel {
      * @returns {Promise<Array>} Lista de aeropuertos
      */
     static async getAll() {
-        const rows = await query('SELECT * FROM airports')
-        return rows
+        const { data: airports, error } = await supabase
+            .from('airports')
+            .select('*')
+            .order('name', { ascending: true })
+            
+        if (error) throw new Error(error.message)
+        return airports
     }
 
     /**
@@ -20,11 +25,15 @@ class AirportModel {
      * @returns {Promise<Object>} Datos del aeropuerto
      */
     static async getById(id) {
-        const [row] = await query('SELECT * FROM airports WHERE id = ?', [id])
-        if (!row) {
-            throw new ClientError('Airport not found', 404)
-        }
-        return row
+        const { data: airport, error } = await supabase
+            .from('airports')
+            .select('*')
+            .eq('id', id)
+            .single()
+            
+        if (error) throw new Error(error.message)
+        if (!airport) throw new ClientError('Airport not found', 404)
+        return airport
     }
 
     /**
@@ -36,11 +45,19 @@ class AirportModel {
      * @returns {Promise<Object>} Resultado de la operación
      */
     static async create({ name, code, city_id }) {
-        const { insertId } = await query(
-            'INSERT INTO airports (name, code, city_id) VALUES (?, ?, ?)',
-            [name, code, city_id]
-        )
-        return { id: insertId, name, code, city_id }
+        const { data: newAirport, error } = await supabase
+            .from('airports')
+            .insert({
+                name,
+                code,
+                city_id
+                // created_at is set automatically by DEFAULT CURRENT_TIMESTAMP in the schema
+            })
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return newAirport
     }
 
     /**
@@ -50,12 +67,22 @@ class AirportModel {
      * @returns {Promise<Object>} Resultado de la operación
      */
     static async update(id, { name, code, city_id }) {
-        await this.getById(id) // Verificar que existe
-        await query(
-            'UPDATE airports SET name = ?, code = ?, city_id = ? WHERE id = ?',
-            [name, code, city_id, id]
-        )
-        return { id, name, code, city_id }
+        await this.getById(id) // Verify it exists
+        
+        const { data: updatedAirport, error } = await supabase
+            .from('airports')
+            .update({
+                name,
+                code,
+                city_id
+                // No updated_at field in the schema
+            })
+            .eq('id', id)
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return updatedAirport
     }
 
     /**
@@ -65,7 +92,13 @@ class AirportModel {
      */
     static async delete(id) {
         await this.getById(id) // Verificar que existe
-        await query('DELETE FROM airports WHERE id = ?', [id])
+        
+        const { error } = await supabase
+            .from('airports')
+            .delete()
+            .eq('id', id)
+            
+        if (error) throw new Error(error.message)
         return true
     }
 
@@ -75,8 +108,14 @@ class AirportModel {
      * @returns {Promise<Array>} Lista de aeropuertos en la ciudad
      */
     static async getByCityId(cityId) {
-        const rows = await query('SELECT * FROM airports WHERE city_id = ?', [cityId])
-        return rows
+        const { data: airports, error } = await supabase
+            .from('airports')
+            .select('*')
+            .eq('city_id', cityId)
+            .order('name', { ascending: true })
+            
+        if (error) throw new Error(error.message)
+        return airports
     }
 }
 

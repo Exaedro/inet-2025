@@ -1,163 +1,201 @@
-import { query } from '../database.js'
+import { supabase } from '../database.js'
 import ClientError from '../utils/clientError.js'
 
 class PackageModel {
     static async getAll() {
-        const rows = await query(`
-            SELECT p.*, 
-                   h.nombre as hotel_name, 
-                   f1.out_date as flight_out_date,
-                   f1.destiny_id as destination_airport_id,
-                   a1.name as destination_airport_name,
-                   c1.name as destination_city_name
-            FROM packages p
-            LEFT JOIN hotels h ON p.hotel_id = h.id
-            LEFT JOIN flights f1 ON p.flight_go_id = f1.id
-            LEFT JOIN airports a1 ON f1.destiny_id = a1.id
-            LEFT JOIN cities c1 ON a1.city_id = c1.id
-        `)
-        return rows
+        const { data: packages, error } = await supabase
+            .from('packages')
+            .select(`
+                *,
+                hotel:hotel_id (id, nombre),
+                flight_go:flight_go_id (
+                    id,
+                    out_date,
+                    destiny:destiny_id (id, name, city:city_id (id, name))
+                )
+            `)
+            
+        if (error) throw new Error(error.message)
+        
+        return packages.map(pkg => ({
+            ...pkg,
+            hotel_name: pkg.hotel?.nombre,
+            flight_out_date: pkg.flight_go?.out_date,
+            destination_airport_id: pkg.flight_go?.destiny?.id,
+            destination_airport_name: pkg.flight_go?.destiny?.name,
+            destination_city_name: pkg.flight_go?.destiny?.city?.name
+        }))
     }
 
     static async getById(id) {
-        const [row] = await query(`
-            SELECT p.*, 
-                   h.nombre as hotel_name, 
-                   f1.out_date as flight_out_date,
-                   f1.destiny_id as destination_airport_id,
-                   a1.name as destination_airport_name,
-                   c1.name as destination_city_name,
-                   f1.back_date as flight_back_date,
-                   f2.out_date as return_flight_out_date,
-                   f2.destiny_id as origin_airport_id,
-                   a2.name as origin_airport_name,
-                   c2.name as origin_city_name
-            FROM packages p
-            LEFT JOIN hotels h ON p.hotel_id = h.id
-            LEFT JOIN flights f1 ON p.flight_go_id = f1.id
-            LEFT JOIN flights f2 ON p.flight_back_id = f2.id
-            LEFT JOIN airports a1 ON f1.destiny_id = a1.id
-            LEFT JOIN airports a2 ON f2.destiny_id = a2.id
-            LEFT JOIN cities c1 ON a1.city_id = c1.id
-            LEFT JOIN cities c2 ON a2.city_id = c2.id
-            WHERE p.id = ?
-        `, [id])
+        const { data: pkg, error } = await supabase
+            .from('packages')
+            .select(`
+                *,
+                hotel:hotel_id (id, nombre),
+                flight_go:flight_go_id (
+                    id,
+                    out_date,
+                    back_date,
+                    destiny:destiny_id (id, name, city:city_id (id, name))
+                ),
+                flight_back:flight_back_id (
+                    id,
+                    out_date,
+                    destiny:destiny_id (id, name, city:city_id (id, name))
+                )
+            `)
+            .eq('id', id)
+            .single()
+            
+        if (error) throw new Error(error.message)
+        if (!pkg) throw new ClientError('Package not found', 404)
         
-        if (!row) throw new ClientError('Package not found', 404)
-        return row
+        return {
+            ...pkg,
+            hotel_name: pkg.hotel?.nombre,
+            flight_out_date: pkg.flight_go?.out_date,
+            destination_airport_id: pkg.flight_go?.destiny?.id,
+            destination_airport_name: pkg.flight_go?.destiny?.name,
+            destination_city_name: pkg.flight_go?.destiny?.city?.name,
+            flight_back_date: pkg.flight_go?.back_date,
+            return_flight_out_date: pkg.flight_back?.out_date,
+            origin_airport_id: pkg.flight_back?.destiny?.id,
+            origin_airport_name: pkg.flight_back?.destiny?.name,
+            origin_city_name: pkg.flight_back?.destiny?.city?.name
+        }
     }
 
     static async search({ destination, check_in, check_out, guests, min_price, max_price }) {
-        let sql = `
-            SELECT p.*, 
-                   h.nombre as hotel_name, 
-                   f1.out_date as flight_out_date,
-                   f1.destiny_id as destination_airport_id,
-                   a1.name as destination_airport_name,
-                   c1.name as destination_city_name
-            FROM packages p
-            LEFT JOIN hotels h ON p.hotel_id = h.id
-            LEFT JOIN flights f1 ON p.flight_go_id = f1.id
-            LEFT JOIN airports a1 ON f1.destiny_id = a1.id
-            LEFT JOIN cities c1 ON a1.city_id = c1.id
-            WHERE 1=1
-        `
-        const params = []
-
+        let query = supabase
+            .from('packages')
+            .select(`
+                *,
+                hotel:hotel_id (id, nombre),
+                flight_go:flight_go_id (
+                    id,
+                    out_date,
+                    back_date,
+                    destiny:destiny_id (id, name, city:city_id (id, name))
+                )
+            `)
+            
+        // Apply filters
         if (destination) {
-            sql += ' AND (c1.name LIKE ? OR a1.city LIKE ?)'
-            const likeDestination = `%${destination}%`
-            params.push(likeDestination, likeDestination)
+            query = query.or(`flight_go.destiny.name.ilike.%${destination}%,flight_go.destiny.city.name.ilike.%${destination}%`)
         }
         if (check_in) {
-            sql += ' AND DATE(f1.out_date) >= ?'
-            params.push(check_in)
+            query = query.gte('flight_go.out_date', check_in)
         }
         if (check_out) {
-            sql += ' AND (p.flight_back_id IS NULL OR DATE(f1.back_date) <= ?)'
-            params.push(check_out)
+            query = query.or(`flight_back_id.is.null,flight_go.back_date.lte.${check_out}`)
         }
         if (guests) {
-            sql += ' AND p.max_people >= ?'
-            params.push(Number(guests))
+            query = query.gte('max_people', Number(guests))
         }
         if (min_price) {
-            sql += ' AND p.total_price >= ?'
-            params.push(Number(min_price))
+            query = query.gte('total_price', Number(min_price))
         }
         if (max_price) {
-            sql += ' AND p.total_price <= ?'
-            params.push(Number(max_price))
+            query = query.lte('total_price', Number(max_price))
         }
-
-        const rows = await query(sql, params)
-        return rows
+        
+        const { data: packages, error } = await query
+        if (error) throw new Error(error.message)
+        
+        return packages.map(pkg => ({
+            ...pkg,
+            hotel_name: pkg.hotel?.nombre,
+            flight_out_date: pkg.flight_go?.out_date,
+            destination_airport_id: pkg.flight_go?.destiny?.id,
+            destination_airport_name: pkg.flight_go?.destiny?.name,
+            destination_city_name: pkg.flight_go?.destiny?.city?.name
+        }))
     }
 
     static async create({
         name,
         description,
-        hotel_id,
-        flight_go_id,
-        flight_back_id,
-        nights,
+        city_destiny_id,
         total_price,
-        discount,
-        max_people,
-        is_available
+        includes_flight = false,
+        includes_hotel = false,
+        includes_car = false
     }) {
-        const { insertId } = await query(
-            `INSERT INTO packages 
-                (name, description, hotel_id, flight_go_id, flight_back_id, 
-                 nights, total_price, discount, max_people, is_available)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                name, description, hotel_id, flight_go_id, flight_back_id,
-                nights, total_price, discount, max_people, is_available ? 1 : 0
-            ]
-        )
-        return this.getById(insertId)
+        const { data: newPackage, error } = await supabase
+            .from('packages')
+            .insert({
+                name,
+                description,
+                city_destiny_id,
+                total_price: Number(total_price),
+                includes_flight: Boolean(includes_flight),
+                includes_hotel: Boolean(includes_hotel),
+                includes_car: Boolean(includes_car)
+            })
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return this.getById(newPackage.id)
     }
 
     static async update(id, {
         name,
         description,
-        hotel_id,
-        flight_go_id,
-        flight_back_id,
-        nights,
+        city_destiny_id,
         total_price,
-        discount,
-        max_people,
-        is_available
+        includes_flight,
+        includes_hotel,
+        includes_car
     }) {
         await this.getById(id)
-        await query(
-            `UPDATE packages 
-             SET name = ?, description = ?, hotel_id = ?, flight_go_id = ?, 
-                 flight_back_id = ?, nights = ?, total_price = ?, discount = ?, 
-                 max_people = ?, is_available = ?
-             WHERE id = ?`,
-            [
-                name, description, hotel_id, flight_go_id, flight_back_id,
-                nights, total_price, discount, max_people, is_available ? 1 : 0, id
-            ]
-        )
-        return this.getById(id)
+        
+        const updateData = {}
+        if (name !== undefined) updateData.name = name
+        if (description !== undefined) updateData.description = description
+        if (city_destiny_id !== undefined) updateData.city_destiny_id = city_destiny_id
+        if (total_price !== undefined) updateData.total_price = Number(total_price)
+        if (includes_flight !== undefined) updateData.includes_flight = Boolean(includes_flight)
+        if (includes_hotel !== undefined) updateData.includes_hotel = Boolean(includes_hotel)
+        if (includes_car !== undefined) updateData.includes_car = Boolean(includes_car)
+        
+        const { data: updatedPackage, error } = await supabase
+            .from('packages')
+            .update(updateData)
+            .eq('id', id)
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return this.getById(updatedPackage.id)
     }
 
     static async delete(id) {
         await this.getById(id)
-        await query('DELETE FROM packages WHERE id = ?', [id])
+        
+        const { error } = await supabase
+            .from('packages')
+            .delete()
+            .eq('id', id)
+            
+        if (error) throw new Error(error.message)
         return true
     }
 
     static async updateAvailability(id, isAvailable) {
-        await query(
-            'UPDATE packages SET is_available = ? WHERE id = ?',
-            [isAvailable ? 1 : 0, id]
-        )
-        return this.getById(id)
+        const { data: updatedPackage, error } = await supabase
+            .from('packages')
+            .update({
+                is_available: isAvailable,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return updatedPackage
     }
 }
 

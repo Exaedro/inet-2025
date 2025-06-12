@@ -1,56 +1,74 @@
-import { query } from '../database.js'
+import { supabase } from '../database.js'
 import ClientError from '../utils/clientError.js'
 
 class HotelModel {
     static async getAll() {
-        const rows = await query(`
-            SELECT h.*, c.name as city_name
-            FROM hotels h
-            LEFT JOIN cities c ON h.city_id = c.id
-        `)
-        return rows
+        const { data: hotels, error } = await supabase
+            .from('hotels')
+            .select(`
+                *,
+                city:city_id (id, name)
+            `)
+            .order('name', { ascending: true })
+            
+        if (error) throw new Error(error.message)
+        
+        return hotels.map(hotel => ({
+            ...hotel,
+            city_name: hotel.city?.name
+        }))
     }
 
     static async getById(id) {
-        const [row] = await query(`
-            SELECT h.*, c.name as city_name
-            FROM hotels h
-            LEFT JOIN cities c ON h.city_id = c.id
-            WHERE h.id = ?
-        `, [id])
-        if (!row) throw new ClientError('Hotel not found', 404)
-        return row
+        const { data: hotel, error } = await supabase
+            .from('hotels')
+            .select(`
+                *,
+                city:city_id (id, name)
+            `)
+            .eq('id', id)
+            .single()
+            
+        if (error) throw new Error(error.message)
+        if (!hotel) throw new ClientError('Hotel not found', 404)
+        
+        return {
+            ...hotel,
+            city_name: hotel.city?.name
+        }
     }
 
     static async search({ city_id, min_stars, max_price, check_in, check_out }) {
-        let sql = `
-            SELECT DISTINCT h.*, c.name as city_name
-            FROM hotels h
-            LEFT JOIN cities c ON h.city_id = c.id
-            WHERE 1=1
-        `
-        const params = []
-
+        let query = supabase
+            .from('hotels')
+            .select(`
+                *,
+                city:city_id (id, name)
+            `)
+            
+        // Apply filters
         if (city_id) {
-            sql += ' AND h.city_id = ?'
-            params.push(city_id)
+            query = query.eq('city_id', city_id)
         }
         if (min_stars) {
-            sql += ' AND h.stars >= ?'
-            params.push(min_stars)
+            query = query.gte('stars', min_stars)
         }
         if (max_price) {
-            sql += ' AND h.price_per_night <= ?'
-            params.push(max_price)
+            query = query.lte('price_per_night', max_price)
         }
         if (check_in && check_out) {
-            // This is a simplified availability check - you might need to adjust based on your booking system
-            sql += ` AND h.available_rooms > 0`
+            // This is a simplified availability check
+            query = query.gt('available_rooms', 0)
             // Add more complex availability logic here if needed
         }
-
-        const rows = await query(sql, params)
-        return rows
+        
+        const { data: hotels, error } = await query
+        if (error) throw new Error(error.message)
+        
+        return hotels.map(hotel => ({
+            ...hotel,
+            city_name: hotel.city?.name
+        }))
     }
 
     static async create({
@@ -61,21 +79,22 @@ class HotelModel {
         price_per_night,
         available_rooms
     }) {
-        const { insertId } = await query(
-            `INSERT INTO hotels 
-                (nombre, city_id, address, stars, price_per_night, available_rooms)
-                VALUES (?, ?, ?, ?, ?, ?)`,
-            [nombre, city_id, address, stars, price_per_night, available_rooms]
-        )
-        return { 
-            id: insertId, 
-            nombre, 
-            city_id, 
-            address, 
-            stars, 
-            price_per_night, 
-            available_rooms 
-        }
+        const { data: newHotel, error } = await supabase
+            .from('hotels')
+            .insert({
+                nombre,
+                city_id,
+                address,
+                stars: Number(stars),
+                price_per_night: Number(price_per_night),
+                available_rooms: Number(available_rooms)
+                // created_at is set automatically by DEFAULT CURRENT_TIMESTAMP in the schema
+            })
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return this.getById(newHotel.id)
     }
 
     static async update(id, {
@@ -87,63 +106,103 @@ class HotelModel {
         available_rooms
     }) {
         await this.getById(id)
-        await query(
-            `UPDATE hotels 
-             SET nombre = ?, city_id = ?, address = ?, stars = ?, 
-                 price_per_night = ?, available_rooms = ?
-             WHERE id = ?`,
-            [nombre, city_id, address, stars, price_per_night, available_rooms, id]
-        )
-        return { 
-            id, 
-            nombre, 
-            city_id, 
-            address, 
-            stars, 
-            price_per_night, 
-            available_rooms 
-        }
+        
+        const updateData = {}
+        if (nombre !== undefined) updateData.nombre = nombre
+        if (city_id !== undefined) updateData.city_id = city_id
+        if (address !== undefined) updateData.address = address
+        if (stars !== undefined) updateData.stars = Number(stars)
+        if (price_per_night !== undefined) updateData.price_per_night = Number(price_per_night)
+        if (available_rooms !== undefined) updateData.available_rooms = Number(available_rooms)
+        
+        const { data: updatedHotel, error } = await supabase
+            .from('hotels')
+            .update(updateData)
+            .eq('id', id)
+            .select()
+            .single()
+            
+        if (error) throw new Error(error.message)
+        return this.getById(updatedHotel.id)
     }
 
     static async delete(id) {
         await this.getById(id)
+        
         // Delete hotel services first to maintain referential integrity
-        await query('DELETE FROM hotel_service WHERE hotel_id = ?', [id])
-        await query('DELETE FROM hotels WHERE id = ?', [id])
+        const { error: serviceError } = await supabase
+            .from('hotel_service')
+            .delete()
+            .eq('hotel_id', id)
+            
+        if (serviceError) throw new Error(serviceError.message)
+        
+        const { error } = await supabase
+            .from('hotels')
+            .delete()
+            .eq('id', id)
+            
+        if (error) throw new Error(error.message)
         return true
     }
 
     static async updateAvailability(id, roomsChange) {
-        await query(
-            'UPDATE hotels SET available_rooms = available_rooms + ? WHERE id = ?', 
-            [roomsChange, id]
-        )
+        const { data: hotel, error } = await supabase
+            .from('hotels')
+            .select('available_rooms')
+            .eq('id', id)
+            .single()
+            
+        if (error) throw new Error(error.message)
+        
+        const newAvailability = hotel.available_rooms + roomsChange
+        
+        const { data: updatedHotel, error: updateError } = await supabase
+            .from('hotels')
+            .update({
+                available_rooms: newAvailability,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select()
+            .single()
+            
+        if (updateError) throw new Error(updateError.message)
         return this.getById(id)
     }
 
     static async getHotelServices(hotelId) {
-        const rows = await query(`
-            SELECT s.id, s.name
-            FROM hotel_service hs
-            JOIN services s ON hs.service_id = s.id
-            WHERE hs.hotel_id = ?
-        `, [hotelId])
-        return rows
+        const { data: services, error } = await supabase
+            .from('hotel_service')
+            .select(`
+                service:service_id (id, name)
+            `)
+            .eq('hotel_id', hotelId)
+            
+        if (error) throw new Error(error.message)
+        
+        return services.map(item => item.service)
     }
 
     static async addHotelService(hotelId, serviceId) {
-        await query(
-            'INSERT INTO hotel_service (hotel_id, service_id) VALUES (?, ?)',
-            [hotelId, serviceId]
-        )
+        const { error } = await supabase
+            .from('hotel_service')
+            .insert({
+                hotel_id: hotelId,
+                service_id: serviceId
+            })
+            
+        if (error) throw new Error(error.message)
         return this.getHotelServices(hotelId)
     }
 
     static async removeHotelService(hotelId, serviceId) {
-        await query(
-            'DELETE FROM hotel_service WHERE hotel_id = ? AND service_id = ?',
-            [hotelId, serviceId]
-        )
+        const { error } = await supabase
+            .from('hotel_service')
+            .delete()
+            .match({ hotel_id: hotelId, service_id: serviceId })
+            
+        if (error) throw new Error(error.message)
         return this.getHotelServices(hotelId)
     }
 }

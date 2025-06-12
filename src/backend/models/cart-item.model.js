@@ -24,6 +24,20 @@ class CartItemModel {
     }
 
     static async create({ cart_id, type_item, item_id, amount = 1 }) {
+        // Validate type_item against allowed values
+        const allowedTypes = ['flight', 'hotel', 'car', 'package']
+        if (!allowedTypes.includes(type_item)) {
+            throw new ClientError('Invalid item type', 400)
+        }
+
+        // Check if item already exists in cart
+        const existingItem = await this.findExisting(cart_id, type_item, item_id)
+        if (existingItem) {
+            // Update amount if item already exists in cart
+            return this.update(existingItem.id, { amount: existingItem.amount + amount })
+        }
+
+        // Create new cart item
         const { data, error } = await supabase
             .from('cart_items')
             .insert({
