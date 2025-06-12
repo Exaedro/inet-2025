@@ -101,18 +101,6 @@ hotelRouter.delete('/:id', asyncHandler(async (req, res) => {
 }))
 
 /**
- * @route PATCH /:id/availability
- * @desc Actualiza la disponibilidad de habitaciones de un hotel
- * @access Privado (solo administradores)
- * @param {string} req.params.id - ID del hotel
- * @param {number} req.body.roomsChange - Cambio en el número de habitaciones (puede ser negativo)
- * @returns {Object} Hotel con disponibilidad actualizada
- */
-hotelRouter.patch('/:id/availability', asyncHandler(async (req, res) => {
-    await hotelController.updateHotelAvailability(req, res)
-}))
-
-/**
  * @route GET /:hotelId/services
  * @desc Obtiene los servicios de un hotel
  * @access Público

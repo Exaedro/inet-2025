@@ -31,14 +31,14 @@ class HotelController {
 
     async searchHotels(req, res) {
         try {
-            const { city_id, min_stars, max_price, check_in, check_out } = req.query
+            const { city_id, stars, price_per_night, address, available_rooms } = req.query
             
             const hotels = await this.hotelModel.search({
                 city_id: city_id ? Number(city_id) : null,
-                min_stars: min_stars ? Number(min_stars) : null,
-                max_price: max_price ? Number(max_price) : null,
-                check_in,
-                check_out
+                stars: stars ? Number(stars) : null,
+                price_per_night: price_per_night ? Number(price_per_night) : null,
+                address,
+                available_rooms
             })
             
             res.json({ success: true, data: hotels })
@@ -55,7 +55,7 @@ class HotelController {
     async createHotel(req, res) {
         try {
             const {
-                nombre,
+                name,
                 city_id,
                 address,
                 stars,
@@ -64,12 +64,12 @@ class HotelController {
             } = req.body
             
             // Validate required fields
-            if (!nombre || !city_id || !address || !stars || !price_per_night || available_rooms === undefined) {
+            if (!name || !city_id || !address || !stars || !price_per_night || available_rooms === undefined) {
                 throw new ClientError('All fields are required', 400)
             }
             
             const newHotel = await this.hotelModel.create({
-                nombre,
+                name,
                 city_id: Number(city_id),
                 address,
                 stars: Number(stars),
@@ -95,7 +95,7 @@ class HotelController {
     async updateHotel(req, res) {
         try {
             const {
-                nombre,
+                name,
                 city_id,
                 address,
                 stars,
@@ -104,14 +104,14 @@ class HotelController {
             } = req.body
             
             // Validate required fields
-            if (!nombre || !city_id || !address || !stars || !price_per_night || available_rooms === undefined) {
+            if (!name || !city_id || !address || !stars || !price_per_night || available_rooms === undefined) {
                 throw new ClientError('All fields are required', 400)
             }
             
             const updatedHotel = await this.hotelModel.update(
                 Number(req.params.id),
                 {
-                    nombre,
+                    name,
                     city_id: Number(city_id),
                     address,
                     stars: Number(stars),
@@ -145,34 +145,6 @@ class HotelController {
             res.status(status).json({ 
                 success: false, 
                 message: error.message || 'Error deleting hotel' 
-            })
-        }
-    }
-
-    async updateHotelAvailability(req, res) {
-        try {
-            const { roomsChange } = req.body
-            
-            if (roomsChange === undefined) {
-                throw new ClientError('roomsChange is required', 400)
-            }
-            
-            const hotel = await this.hotelModel.updateAvailability(
-                Number(req.params.id),
-                Number(roomsChange)
-            )
-            
-            res.json({ 
-                success: true, 
-                message: 'Hotel availability updated successfully',
-                data: hotel 
-            })
-        } catch (error) {
-            console.error('Error updating hotel availability:', error)
-            const status = error.statusCode || 500
-            res.status(status).json({ 
-                success: false, 
-                message: error.message || 'Error updating hotel availability' 
             })
         }
     }

@@ -6,7 +6,7 @@ class HotelModel {
         const { data: hotels, error } = await supabase
             .from('hotels')
             .select(`
-                *,
+                id, name, address, stars, price_per_night, available_rooms,
                 city:city_id (id, name)
             `)
             .order('name', { ascending: true })
@@ -23,7 +23,7 @@ class HotelModel {
         const { data: hotel, error } = await supabase
             .from('hotels')
             .select(`
-                *,
+                id, name, address, stars, price_per_night, available_rooms,
                 city:city_id (id, name)
             `)
             .eq('id', id)
@@ -38,11 +38,11 @@ class HotelModel {
         }
     }
 
-    static async search({ city_id, min_stars, max_price, check_in, check_out }) {
+    static async search({ city_id, stars, price_per_night, address, available_rooms }) {
         let query = supabase
             .from('hotels')
             .select(`
-                *,
+                id, name, address, stars, price_per_night, available_rooms,
                 city:city_id (id, name)
             `)
             
@@ -50,16 +50,17 @@ class HotelModel {
         if (city_id) {
             query = query.eq('city_id', city_id)
         }
-        if (min_stars) {
-            query = query.gte('stars', min_stars)
+        if (stars) {
+            query = query.gte('stars', stars)
         }
-        if (max_price) {
-            query = query.lte('price_per_night', max_price)
+        if (price_per_night) {
+            query = query.lte('price_per_night', price_per_night)
         }
-        if (check_in && check_out) {
-            // This is a simplified availability check
-            query = query.gt('available_rooms', 0)
-            // Add more complex availability logic here if needed
+        if (address) {
+            query = query.ilike('address', `%${address}%`)
+        }
+        if (available_rooms) {
+            query = query.eq('available_rooms', available_rooms)
         }
         
         const { data: hotels, error } = await query
@@ -72,7 +73,7 @@ class HotelModel {
     }
 
     static async create({
-        nombre,
+        name,
         city_id,
         address,
         stars,
@@ -82,7 +83,7 @@ class HotelModel {
         const { data: newHotel, error } = await supabase
             .from('hotels')
             .insert({
-                nombre,
+                name,
                 city_id,
                 address,
                 stars: Number(stars),
@@ -98,7 +99,7 @@ class HotelModel {
     }
 
     static async update(id, {
-        nombre,
+        name,
         city_id,
         address,
         stars,
@@ -108,7 +109,7 @@ class HotelModel {
         await this.getById(id)
         
         const updateData = {}
-        if (nombre !== undefined) updateData.nombre = nombre
+        if (name !== undefined) updateData.name = name
         if (city_id !== undefined) updateData.city_id = city_id
         if (address !== undefined) updateData.address = address
         if (stars !== undefined) updateData.stars = Number(stars)
@@ -144,31 +145,6 @@ class HotelModel {
             
         if (error) throw new Error(error.message)
         return true
-    }
-
-    static async updateAvailability(id, roomsChange) {
-        const { data: hotel, error } = await supabase
-            .from('hotels')
-            .select('available_rooms')
-            .eq('id', id)
-            .single()
-            
-        if (error) throw new Error(error.message)
-        
-        const newAvailability = hotel.available_rooms + roomsChange
-        
-        const { data: updatedHotel, error: updateError } = await supabase
-            .from('hotels')
-            .update({
-                available_rooms: newAvailability,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', id)
-            .select()
-            .single()
-            
-        if (updateError) throw new Error(updateError.message)
-        return this.getById(id)
     }
 
     static async getHotelServices(hotelId) {
