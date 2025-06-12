@@ -13,6 +13,16 @@ class CityModel {
     }
 
     static async getById(id) {
+        // Validaciones
+        const { data: exists } = await supabase
+            .from('cities')
+            .select('*')
+            .eq('id', id)
+            .single()
+        
+        if (!exists) throw new ClientError('City not found', 404)
+        
+        
         const { data: city, error } = await supabase
             .from('cities')
             .select('*')
@@ -25,6 +35,16 @@ class CityModel {
     }
 
     static async create({ name, country }) {
+        // Validaciones
+        const { data: exists } = await supabase
+        .from('cities')
+        .select('*')
+        .eq('name', name)
+        .single()
+    
+        if (exists) throw new ClientError('City already exists', 400)
+
+        
         const { data: newCity, error } = await supabase
             .from('cities')
             .insert({ name, country })
@@ -36,25 +56,38 @@ class CityModel {
     }
 
     static async update(id, { name, country }) {
-        await this.getById(id)
+        // Validaciones
+        const { data: exists } = await supabase
+            .from('cities')
+            .select('*')
+            .eq('id', id)
+            .single()
+        
+        if (!exists) throw new ClientError('City not found', 404)
+        
         
         const { data: updatedCity, error } = await supabase
             .from('cities')
             .update({ 
                 name, 
                 country
-                // No updated_at in schema
             })
             .eq('id', id)
-            .select()
-            .single()
+            .select('*')
             
         if (error) throw new Error(error.message)
         return updatedCity
     }
 
     static async delete(id) {
-        await this.getById(id)
+        // Validaciones
+        const { data: exists } = await supabase
+            .from('cities')
+            .select('*')
+            .eq('id', id)
+            .single()
+        
+        if (!exists) throw new ClientError('City not found', 404)
         
         const { error } = await supabase
             .from('cities')
