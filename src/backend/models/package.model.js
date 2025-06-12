@@ -13,7 +13,7 @@ class PackageModel {
             country,
             hotels (
                 id,
-                nombre,
+                name,
                 address
             )
             )
@@ -23,11 +23,7 @@ class PackageModel {
 
         return packages.map(pkg => ({
             ...pkg,
-            hotel_name: pkg.hotels?.nombre,
-            flight_out_date: pkg.flight_go?.out_date,
-            destination_airport_id: pkg.flight_go?.destiny?.id,
-            destination_airport_name: pkg.flight_go?.destiny?.name,
-            destination_city_name: pkg.flight_go?.destiny?.city?.name
+            hotel_name: pkg.hotels?.name
         }))
     }
 
@@ -42,21 +38,11 @@ class PackageModel {
             country,
             hotels (
               id,
-              nombre,
+              name,
               address,
               stars,
               price_per_night,
               available_rooms
-            ),
-            flights (
-              id,
-              out_date,
-              back_date,
-              origin:origin_id (id, name),
-              airline:airline_id (id, name),
-              class,
-              duration,
-              price
             )
           )
         `)
@@ -69,16 +55,7 @@ class PackageModel {
 
         return {
             ...pkg,
-            hotel_name: pkg.hotel?.nombre,
-            flight_out_date: pkg.flight_go?.out_date,
-            destination_airport_id: pkg.flight_go?.destiny?.id,
-            destination_airport_name: pkg.flight_go?.destiny?.name,
-            destination_city_name: pkg.flight_go?.destiny?.city?.name,
-            flight_back_date: pkg.flight_go?.back_date,
-            return_flight_out_date: pkg.flight_back?.out_date,
-            origin_airport_id: pkg.flight_back?.destiny?.id,
-            origin_airport_name: pkg.flight_back?.destiny?.name,
-            origin_city_name: pkg.flight_back?.destiny?.city?.name
+            hotel_name: pkg.hotels?.name
         }
     }
 
@@ -109,7 +86,7 @@ class PackageModel {
                 return true;
             })
             .map(pkg => ({
-                ...pkg,
+                ...pkg
             }));
 
         return finalResult;
