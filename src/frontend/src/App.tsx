@@ -1,23 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import ProductGrid from './components/ProductGrid';
 import Cart from './components/Cart';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
-import { User, CartItem, ProductType, Flight, Hotel, Package, Car } from './types';
-import { 
-  mockFlights, 
-  mockHotels, 
-  mockPackages, 
-  mockCars,
-  mockCities,
-  mockAirports,
-  mockBrands
-} from './data/mockData';
+import { User, CartItem, ProductType, Flight, Hotel, Package, Car, Airport, City, Brand } from './types';
+
+import { API_URL } from './data/mockData';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [currentProductType, setCurrentProductType] = useState<ProductType>('flights');
+  const [currentProductType, setCurrentProductType] = useState<ProductType>('flight');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -25,26 +18,60 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<(Flight | Hotel | Package | Car)[]>([]);
 
+  const [products, setProducts] = useState<(Flight | Hotel | Package | Car)[]>([]);
+  const [airports, setAirports] = useState<Airport[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+
   // Get current products based on selected type
-  const getCurrentProducts = (): (Flight | Hotel | Package | Car)[] => {
+  const getCurrentProducts = async (): Promise<(Flight | Hotel | Package | Car)[]> => {
     switch (currentProductType) {
-      case 'flights':
-        return mockFlights;
-      case 'hotels':
-        return mockHotels;
-      case 'packages':
-        return mockPackages;
-      case 'cars':
-        return mockCars;
+      case 'flight': {
+        const flightsRes = await fetch(API_URL + '/flights');
+        const flightsData = await flightsRes.json();
+        return flightsData.data || [];
+      }
+      case 'hotel': {
+        const hotelsRes = await fetch(API_URL + '/hotels');
+        const hotelsData = await hotelsRes.json();
+        return hotelsData.data || [];
+      }
+      case 'package': {
+        const packagesRes = await fetch(API_URL + '/packages');
+        const packagesData = await packagesRes.json();
+        return packagesData.data || [];
+      }
+      case 'car': {
+        const carsRes = await fetch(API_URL + '/cars');
+        const carsData = await carsRes.json();
+        return carsData.data || [];
+      }
       default:
         return [];
     }
   };
 
-  // Filter products based on search query
   useEffect(() => {
-    const products = getCurrentProducts();
-    
+    const fetchData = async () => {
+      setProducts(await getCurrentProducts());
+
+      const airportsRes = await fetch(API_URL + '/airports');
+      const airportsData = await airportsRes.json();
+      setAirports(airportsData);
+
+      const citiesRes = await fetch(API_URL + '/cities');
+      const citiesData = await citiesRes.json();
+      setCities(citiesData);
+
+      const brandsRes = await fetch(API_URL + '/brands');
+      const brandsData = await brandsRes.json();
+      setBrands(brandsData);
+    };
+    fetchData();
+  }, [currentProductType]);
+  
+  // Filtrar productos según la búsqueda y el tipo
+  useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredProducts(products);
       return;
@@ -52,53 +79,53 @@ function App() {
 
     const filtered = products.filter(product => {
       const searchLower = searchQuery.toLowerCase();
-      
+
       switch (currentProductType) {
-        case 'flights':
+        case 'flight':
           const flight = product as Flight;
-          const originAirport = mockAirports.find(a => a.id === flight.origin_id);
-          const destinyAirport = mockAirports.find(a => a.id === flight.destiny_id);
-          const originCity = mockCities.find(c => c.id === originAirport?.city_id);
-          const destinyCity = mockCities.find(c => c.id === destinyAirport?.city_id);
+          const originAirport = airports.find(a => a.id === flight.origin_id);
+          const destinyAirport = airports.find(a => a.id === flight.destiny_id);
+          const originCity = cities.find(c => c.id === originAirport?.city_id);
+          const destinyCity = cities.find(c => c.id === destinyAirport?.city_id);
           return (
             originCity?.name.toLowerCase().includes(searchLower) ||
             destinyCity?.name.toLowerCase().includes(searchLower) ||
             flight.class.toLowerCase().includes(searchLower)
           );
-        
-        case 'hotels':
+
+        case 'hotel':
           const hotel = product as Hotel;
-          const hotelCity = mockCities.find(c => c.id === hotel.city_id);
+          const hotelCity = cities.find(c => c.id === hotel.city_id);
           return (
-            hotel.nombre.toLowerCase().includes(searchLower) ||
+            hotel.name.toLowerCase().includes(searchLower) ||
             hotelCity?.name.toLowerCase().includes(searchLower) ||
             hotel.address.toLowerCase().includes(searchLower)
           );
-        
-        case 'packages':
+
+        case 'package':
           const pkg = product as Package;
-          const pkgCity = mockCities.find(c => c.id === pkg.city_destiny_id);
+          const pkgCity = cities.find(c => c.id === pkg.city_destiny_id);
           return (
             pkg.name.toLowerCase().includes(searchLower) ||
             pkg.description.toLowerCase().includes(searchLower) ||
             pkgCity?.name.toLowerCase().includes(searchLower)
           );
-        
-        case 'cars':
+
+        case 'car':
           const car = product as Car;
-          const carCity = mockCities.find(c => c.id === car.city_id);
-          const brand = mockBrands.find(b => b.id === car.brand_id);
+          const carCity = cities.find(c => c.id === car.city_id);
+          const brand = brands.find(b => b.id === car.brand_id);
           return (
             car.model.toLowerCase().includes(searchLower) ||
             brand?.name.toLowerCase().includes(searchLower) ||
             carCity?.name.toLowerCase().includes(searchLower)
           );
-        
+
         default:
           return false;
       }
     });
-    
+
     setFilteredProducts(filtered);
   }, [searchQuery, currentProductType]);
 
@@ -160,8 +187,11 @@ function App() {
   };
 
   const handleProductTypeChange = (type: ProductType) => {
+    // Cambia la sección y limpia la búsqueda. El useEffect de productos se ejecutará automáticamente.
     setCurrentProductType(type);
     setSearchQuery('');
+    // Opcional: Limpiar productos filtrados para evitar parpadeos
+    setFilteredProducts([]);
   };
 
   const handleSearch = (query: string) => {
@@ -174,13 +204,13 @@ function App() {
 
   const getProductTypeForGrid = (): 'flight' | 'hotel' | 'package' | 'car' => {
     switch (currentProductType) {
-      case 'flights':
+      case 'flight':
         return 'flight';
-      case 'hotels':
+      case 'hotel':
         return 'hotel';
-      case 'packages':
+      case 'package':
         return 'package';
-      case 'cars':
+      case 'car':
         return 'car';
       default:
         return 'flight';
@@ -189,13 +219,13 @@ function App() {
 
   const getPageTitle = () => {
     switch (currentProductType) {
-      case 'flights':
+      case 'flight':
         return 'Descubre los mejores vuelos';
-      case 'hotels':
+      case 'hotel':
         return 'Encuentra tu hotel ideal';
-      case 'packages':
+      case 'package':
         return 'Paquetes de viaje únicos';
-      case 'cars':
+      case 'car':
         return 'Alquila el auto perfecto';
       default:
         return 'Planifica tu viaje perfecto';
@@ -204,23 +234,25 @@ function App() {
 
   const getPageSubtitle = () => {
     switch (currentProductType) {
-      case 'flights':
+      case 'flight':
         return 'Conectamos tus destinos favoritos con las mejores aerolíneas';
-      case 'hotels':
+      case 'hotel':
         return 'Alojamientos excepcionales para cada tipo de viajero';
-      case 'packages':
+      case 'package':
         return 'Experiencias completas diseñadas para crear recuerdos inolvidables';
-      case 'cars':
+      case 'car':
         return 'Libertad total para explorar cada rincón de tu destino';
       default:
         return 'Todo lo que necesitas para una experiencia de viaje inolvidable';
     }
   };
 
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-yellow-50">
       <Header
-        cartItemsCount={cartItems.length}
+        cartItemsCount={cartItems.reduce((acc, item) => acc + item.amount, 0)}
         onCartClick={() => setIsCartOpen(true)}
         onAuthClick={handleAuthClick}
         currentUser={currentUser}
@@ -239,7 +271,7 @@ function App() {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             {getPageSubtitle()}
           </p>
-          
+
           {/* Admin Panel Button for Admin Users */}
           {currentUser?.is_admin && (
             <button
@@ -249,7 +281,7 @@ function App() {
               Abrir Panel de Administración
             </button>
           )}
-          
+
           <div className="flex justify-center">
             <div className="bg-white rounded-2xl p-2 shadow-lg">
               <div className="flex flex-wrap gap-2">
@@ -267,9 +299,8 @@ function App() {
           </div>
         </div>
 
-        {/* Products Grid */}
         <ProductGrid
-          products={filteredProducts}
+          products={products}
           productType={getProductTypeForGrid()}
           onAddToCart={handleAddToCart}
         />

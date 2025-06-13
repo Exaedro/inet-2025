@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
-import { CartItem } from '../types';
-import { mockFlights, mockHotels, mockPackages, mockCars, mockCities, mockAirports, mockBrands } from '../data/mockData';
+import { Airport, Brand, Car, CartItem, Hotel, Package, City, Flight } from '../types';
+
+import { API_URL } from '../data/mockData';
 
 interface CartProps {
   isOpen: boolean;
@@ -20,6 +21,47 @@ const Cart: React.FC<CartProps> = ({
   onRemoveItem,
   onCheckout
 }) => {
+  const [cities, setCities] = useState<City[]>([]);
+  const [airports, setAirports] = useState<Airport[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [cars, setCars] = useState<Car[]>([]);
+  const [flights, setFlights] = useState<Flight[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const flightsRes = await fetch(API_URL + '/flights')
+      const flightsData = await flightsRes.json()
+      setFlights(flightsData.data)
+
+      const hotelsRes = await fetch(API_URL + '/hotels')
+      const hotelsData = await hotelsRes.json()
+      setHotels(hotelsData.data)
+
+      const packagesRes = await fetch(API_URL + '/packages')
+      const packagesData = await packagesRes.json()
+      setPackages(packagesData.data)
+
+      const carsRes = await fetch(API_URL + '/cars')
+      const carsData = await carsRes.json()
+      setCars(carsData.data)
+
+      const citiesRes = await fetch(API_URL + '/cities')
+      const citiesData = await citiesRes.json()
+      setCities(citiesData.data)
+
+      const airportsRes = await fetch(API_URL + '/airports')
+      const airportsData = await airportsRes.json()
+      setAirports(airportsData.data)
+
+      const brandsRes = await fetch(API_URL + '/brands')
+      const brandsData = await brandsRes.json()
+      setBrands(brandsData.data)
+    }
+    fetchData()
+  }, [])
+
   const getProductDetails = (item: CartItem) => {
     let product: any = null;
     let name = '';
@@ -27,34 +69,34 @@ const Cart: React.FC<CartProps> = ({
     
     switch (item.type_item) {
       case 'flight':
-        product = mockFlights.find(f => f.id === item.item_id);
+        product = flights.find(f => f.id === item.item_id);
         if (product) {
-          const originAirport = mockAirports.find(a => a.id === product.origin_id);
-          const destinyAirport = mockAirports.find(a => a.id === product.destiny_id);
-          const originCity = mockCities.find(c => c.id === originAirport?.city_id);
-          const destinyCity = mockCities.find(c => c.id === destinyAirport?.city_id);
+          const originAirport = airports.find(a => a.id === product.origin_id);
+          const destinyAirport = airports.find(a => a.id === product.destiny_id);
+          const originCity = cities.find(c => c.id === originAirport?.city_id);
+          const destinyCity = cities.find(c => c.id === destinyAirport?.city_id);
           name = `Vuelo ${originCity?.name} → ${destinyCity?.name}`;
           price = product.price;
         }
         break;
       case 'hotel':
-        product = mockHotels.find(h => h.id === item.item_id);
+        product = hotels.find(h => h.id === item.item_id);
         if (product) {
           name = product.nombre;
           price = product.price_per_night;
         }
         break;
       case 'package':
-        product = mockPackages.find(p => p.id === item.item_id);
+        product = packages.find(p => p.id === item.item_id);
         if (product) {
           name = product.name;
           price = product.total_price;
         }
         break;
       case 'car':
-        product = mockCars.find(c => c.id === item.item_id);
+        product = cars.find(c => c.id === item.item_id);
         if (product) {
-          const brand = mockBrands.find(b => b.id === product.brand_id);
+          const brand = brands.find(b => b.id === product.brand_id);
           name = `${brand?.name} ${product.model}`;
           price = product.price_per_day;
         }

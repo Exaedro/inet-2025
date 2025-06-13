@@ -46,7 +46,7 @@ export interface Flight {
 
 export interface Hotel {
   id: number;
-  nombre: string;
+  name: string;
   city_id: number;
   address: string;
   stars: number;
@@ -98,4 +98,4 @@ export interface Cart {
   created_at: string;
 }
 
-export type ProductType = 'flights' | 'hotels' | 'packages' | 'cars';
+export type ProductType = 'flight' | 'hotel' | 'package' | 'car';

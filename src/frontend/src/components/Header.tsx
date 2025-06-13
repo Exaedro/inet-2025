@@ -27,10 +27,10 @@ const Header: React.FC<HeaderProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   const productTypes = [
-    { key: 'flights' as ProductType, label: 'Vuelos', icon: Plane },
-    { key: 'hotels' as ProductType, label: 'Hoteles', icon: Hotel },
-    { key: 'packages' as ProductType, label: 'Paquetes', icon: Package },
-    { key: 'cars' as ProductType, label: 'Autos', icon: Car },
+    { key: 'flight' as ProductType, label: 'Vuelos', icon: Plane },
+    { key: 'hotel' as ProductType, label: 'Hoteles', icon: Hotel },
+    { key: 'package' as ProductType, label: 'Paquetes', icon: Package },
+    { key: 'car' as ProductType, label: 'Autos', icon: Car },
   ];
 
   const handleSearch = (e: React.FormEvent) => {

@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapPin, Clock, Star, Users, Plane, Hotel as HotelIcon, Package2, Car } from 'lucide-react';
 import { Flight, Hotel, Package, Car as CarType } from '../types';
-import { mockCities, mockAirlines, mockAirports, mockBrands } from '../data/mockData';
+import { City, Airline, Airport, Brand } from '../types';
+
+import { API_URL } from '../data/mockData';
+
 
 interface ProductCardProps {
   product: Flight | Hotel | Package | CarType;
@@ -10,25 +13,56 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, type, onAddToCart }) => {
+  const [cities, setCities] = useState<City[]>([]);
+  const [airlines, setAirlines] = useState<Airline[]>([]);
+  const [airports, setAirports] = useState<Airport[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const citiesRes = await fetch(API_URL + '/cities')
+      const citiesData = await citiesRes.json()
+      setCities(citiesData.data)
+
+      const airlinesRes = await fetch(API_URL + '/airlines')
+      const airlinesData = await airlinesRes.json()
+      setAirlines(airlinesData.data)
+
+      const airportsRes = await fetch(API_URL + '/airports')
+      const airportsData = await airportsRes.json()
+      setAirports(airportsData.data)
+
+      const brandsRes = await fetch(API_URL + '/brands')
+      const brandsData = await brandsRes.json()
+      setBrands(brandsData.data)
+    }
+    fetchData()
+  }, [type]);
+
   const getDestinationName = (cityId: number) => {
-    const city = mockCities.find(c => c.id === cityId);
+    const city = cities.find(c => c.id === cityId);
     return city ? `${city.name}, ${city.country}` : 'Destino desconocido';
   };
 
   const getAirlineName = (airlineId: number) => {
-    const airline = mockAirlines.find(a => a.id === airlineId);
+    const airline = airlines.find(a => a.id === airlineId);
     return airline ? airline.name : 'Aerolínea desconocida';
   };
 
   const getBrandName = (brandId: number) => {
-    const brand = mockBrands.find(b => b.id === brandId);
+    const brand = brands.find(b => b.id === brandId);
     return brand ? brand.name : 'Marca desconocida';
   };
 
   const getAirportCity = (airportId: number) => {
-    const airport = mockAirports.find(a => a.id === airportId);
+    /**
+     * El aeropuerto correspondiente al ID dado. Puede ser null si no se encuentra
+     * en la lista de aeropuertos.
+     * @type {(import('../types').Airport | null)}
+     */
+    const airport = airports.find(a => a.id === airportId);
     if (airport) {
-      const city = mockCities.find(c => c.id === airport.city_id);
+      const city = cities.find(c => c.id === airport.city_id);
       return city ? city.name : 'Ciudad desconocida';
     }
     return 'Ciudad desconocida';
@@ -102,7 +136,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, type, onAddToCart })
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center space-x-2">
               <HotelIcon size={20} />
-              <span className="font-semibold">{hotel.nombre}</span>
+              <span className="font-semibold">{hotel.name}</span>
             </div>
             <div className="flex items-center">
               {[...Array(hotel.stars)].map((_, i) => (
