@@ -1,94 +1,268 @@
 import React from 'react';
-import { MapPin, Calendar, Users, Star } from 'lucide-react';
-import { Product } from '../types';
-import { useCart } from '../contexts/CartContext';
+import { MapPin, Clock, Star, Users, Plane, Hotel as HotelIcon, Package2, Car } from 'lucide-react';
+import { Flight, Hotel, Package, Car as CarType } from '../types';
+import { mockCities, mockAirlines, mockAirports, mockBrands } from '../data/mockData';
 
 interface ProductCardProps {
-  product: Product;
+  product: Flight | Hotel | Package | CarType;
+  type: 'flight' | 'hotel' | 'package' | 'car';
+  onAddToCart: (product: any, type: string) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useCart();
-
-  const handleAddToCart = () => {
-    addToCart(product);
+const ProductCard: React.FC<ProductCardProps> = ({ product, type, onAddToCart }) => {
+  const getDestinationName = (cityId: number) => {
+    const city = mockCities.find(c => c.id === cityId);
+    return city ? `${city.name}, ${city.country}` : 'Destino desconocido';
   };
 
-  return (
-    <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden group">
-      {/* Image */}
-      <div className="relative overflow-hidden">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-        />
-        <div className="absolute top-4 right-4 bg-yellow-400 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
-          {product.category}
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      </div>
+  const getAirlineName = (airlineId: number) => {
+    const airline = mockAirlines.find(a => a.id === airlineId);
+    return airline ? airline.name : 'Aerolínea desconocida';
+  };
 
-      {/* Content */}
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-xl font-bold text-gray-800 line-clamp-2">
-            {product.name}
-          </h3>
-          <div className="flex items-center space-x-1 text-yellow-500">
-            <Star className="h-4 w-4 fill-current" />
-            <span className="text-sm font-medium">4.8</span>
-          </div>
-        </div>
+  const getBrandName = (brandId: number) => {
+    const brand = mockBrands.find(b => b.id === brandId);
+    return brand ? brand.name : 'Marca desconocida';
+  };
 
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {product.description}
-        </p>
+  const getAirportCity = (airportId: number) => {
+    const airport = mockAirports.find(a => a.id === airportId);
+    if (airport) {
+      const city = mockCities.find(c => c.id === airport.city_id);
+      return city ? city.name : 'Ciudad desconocida';
+    }
+    return 'Ciudad desconocida';
+  };
 
-        {/* Features */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {product.features.slice(0, 3).map((feature, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
-            >
-              {feature}
-            </span>
-          ))}
-        </div>
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
 
-        {/* Details */}
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-          <div className="flex items-center space-x-1">
-            <MapPin className="h-4 w-4" />
-            <span>{product.destination}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Calendar className="h-4 w-4" />
-            <span>{product.duration} días</span>
-          </div>
-        </div>
-
-        {/* Price and Action */}
-        <div className="flex items-center justify-between">
-          <div className="text-left">
-            <div className="text-sm text-gray-500">Desde</div>
-            <div className="text-2xl font-bold text-blue-600">
-              US${product.price.toLocaleString()}
+  const renderFlightCard = (flight: Flight) => (
+    <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group hover:scale-105">
+      <div className="relative">
+        <div className="bg-gradient-to-r from-sky-500 to-blue-600 p-4">
+          <div className="flex items-center justify-between text-white">
+            <div className="flex items-center space-x-2">
+              <Plane size={20} />
+              <span className="font-semibold">{getAirlineName(flight.airline_id)}</span>
             </div>
-            <div className="text-xs text-gray-500">por persona</div>
+            <span className="bg-white/20 px-2 py-1 rounded-full text-sm">{flight.class}</span>
           </div>
-          
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-sky-400/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
+      
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm text-gray-600">
+            <MapPin size={16} className="inline mr-1" />
+            {getAirportCity(flight.origin_id)} → {getAirportCity(flight.destiny_id)}
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <Clock size={16} className="mr-1" />
+            {flight.duration}
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-sm text-gray-600">Salida: {flight.out_date}</p>
+            <p className="text-sm text-gray-600">Regreso: {flight.back_date}</p>
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <Users size={16} className="mr-1" />
+            {flight.available_seats} asientos
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div className="text-2xl font-bold text-sky-600">
+            {formatPrice(flight.price)}
+          </div>
           <button
-            onClick={handleAddToCart}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-full hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+            onClick={() => onAddToCart(flight, 'flight')}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-semibold"
           >
-            Agregar al Carrito
+            Agregar
           </button>
         </div>
       </div>
     </div>
   );
+
+  const renderHotelCard = (hotel: Hotel) => (
+    <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group hover:scale-105">
+      <div className="relative">
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-4">
+          <div className="flex items-center justify-between text-white">
+            <div className="flex items-center space-x-2">
+              <HotelIcon size={20} />
+              <span className="font-semibold">{hotel.nombre}</span>
+            </div>
+            <div className="flex items-center">
+              {[...Array(hotel.stars)].map((_, i) => (
+                <Star key={i} size={16} fill="currentColor" />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
+      
+      <div className="p-6">
+        <div className="mb-4">
+          <div className="flex items-center text-sm text-gray-600 mb-2">
+            <MapPin size={16} className="mr-1" />
+            {getDestinationName(hotel.city_id)}
+          </div>
+          <p className="text-sm text-gray-600">{hotel.address}</p>
+        </div>
+        
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center text-sm text-gray-600">
+            <Users size={16} className="mr-1" />
+            {hotel.available_rooms} habitaciones disponibles
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-2xl font-bold text-emerald-600">
+              {formatPrice(hotel.price_per_night)}
+            </div>
+            <div className="text-sm text-gray-600">por noche</div>
+          </div>
+          <button
+            onClick={() => onAddToCart(hotel, 'hotel')}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-semibold"
+          >
+            Agregar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderPackageCard = (pkg: Package) => (
+    <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group hover:scale-105">
+      <div className="relative">
+        <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-4">
+          <div className="flex items-center justify-between text-white">
+            <div className="flex items-center space-x-2">
+              <Package2 size={20} />
+              <span className="font-semibold">{pkg.name}</span>
+            </div>
+            <span className="bg-white/20 px-2 py-1 rounded-full text-xs">PAQUETE</span>
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
+      
+      <div className="p-6">
+        <div className="mb-4">
+          <div className="flex items-center text-sm text-gray-600 mb-2">
+            <MapPin size={16} className="mr-1" />
+            {getDestinationName(pkg.city_destiny_id)}
+          </div>
+          <p className="text-sm text-gray-600">{pkg.description}</p>
+        </div>
+        
+        <div className="flex flex-wrap gap-2 mb-4">
+          {pkg.includes_flight && (
+            <span className="bg-sky-100 text-sky-700 px-2 py-1 rounded-full text-xs">✈️ Vuelo</span>
+          )}
+          {pkg.includes_hotel && (
+            <span className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs">🏨 Hotel</span>
+          )}
+          {pkg.includes_car && (
+            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">🚗 Auto</span>
+          )}
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div className="text-2xl font-bold text-purple-600">
+            {formatPrice(pkg.total_price)}
+          </div>
+          <button
+            onClick={() => onAddToCart(pkg, 'package')}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-semibold"
+          >
+            Agregar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCarCard = (car: CarType) => (
+    <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group hover:scale-105">
+      <div className="relative">
+        <div className="bg-gradient-to-r from-orange-500 to-red-600 p-4">
+          <div className="flex items-center justify-between text-white">
+            <div className="flex items-center space-x-2">
+              <Car size={20} />
+              <span className="font-semibold">{getBrandName(car.brand_id)} {car.model}</span>
+            </div>
+            <span className={`px-2 py-1 rounded-full text-xs ${
+              car.disponibility 
+                ? 'bg-green-500/20 text-green-100' 
+                : 'bg-red-500/20 text-red-100'
+            }`}>
+              {car.disponibility ? 'Disponible' : 'No disponible'}
+            </span>
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-400/20 to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
+      
+      <div className="p-6">
+        <div className="mb-4">
+          <div className="flex items-center text-sm text-gray-600 mb-2">
+            <MapPin size={16} className="mr-1" />
+            {getDestinationName(car.city_id)}
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatPrice(car.price_per_day)}
+            </div>
+            <div className="text-sm text-gray-600">por día</div>
+          </div>
+          <button
+            onClick={() => onAddToCart(car, 'car')}
+            disabled={!car.disponibility}
+            className={`px-6 py-2 rounded-lg transition-colors duration-200 font-semibold ${
+              car.disponibility
+                ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {car.disponibility ? 'Agregar' : 'No disponible'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  switch (type) {
+    case 'flight':
+      return renderFlightCard(product as Flight);
+    case 'hotel':
+      return renderHotelCard(product as Hotel);
+    case 'package':
+      return renderPackageCard(product as Package);
+    case 'car':
+      return renderCarCard(product as CarType);
+    default:
+      return null;
+  }
 };
 
 export default ProductCard;

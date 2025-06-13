@@ -1,284 +1,196 @@
-import { Product, Order, Service } from '../types';
+import { City, Flight, Hotel, Package, Car, User, Airline, Airport, Brand, Service } from '../types';
 
-export const mockProducts: Product[] = [
-  {
-    id: '1',
-    code: 'BAHIA001',
-    name: 'Escapada Salvador de Bahía',
-    description: 'Paquete completo con vuelos, alojamiento y actividades en las hermosas playas de Salvador de Bahía',
-    price: 780,
-    category: 'Playa',
-    destination: 'Brasil',
-    duration: 7,
-    image: 'https://images.pexels.com/photos/1320684/pexels-photo-1320684.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['2 vuelos', '7 noches', 'Alojamiento con desayuno', '2 transfers'],
-    available: true
+export const mockUsers: User[] = [
+  { 
+    id: 1, 
+    first_name: 'Juan', 
+    last_name: 'Pérez', 
+    email: 'juan@email.com', 
+    created_at: '2025-01-01T10:00:00Z',
+    is_admin: false 
   },
-  {
-    id: '2',
-    code: 'RIO001',
-    name: 'Escapada Río de Janeiro',
-    description: 'Descubre la ciudad maravillosa con este paquete que incluye Cristo Redentor y Pan de Azúcar',
-    price: 677,
-    category: 'Ciudad',
-    destination: 'Brasil',
-    duration: 5,
-    image: 'https://images.pexels.com/photos/351448/pexels-photo-351448.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['2 vuelos', '5 noches', 'Alojamiento con desayuno', '2 transfers'],
-    available: true
+  { 
+    id: 2, 
+    first_name: 'María', 
+    last_name: 'García', 
+    email: 'maria@email.com', 
+    created_at: '2025-01-01T10:00:00Z',
+    is_admin: true 
   },
-  {
-    id: '3',
-    code: 'CUBA001',
-    name: 'Cuba Grupal Acompañada 2025',
-    description: 'Viaje grupal con acompañante especializado para conocer la auténtica Cuba',
-    price: 2305,
-    category: 'Grupal',
-    destination: 'Cuba',
-    duration: 10,
-    image: 'https://images.pexels.com/photos/2064826/pexels-photo-2064826.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['1 vuelo', '10 noches', 'Acompañada doble', 'Asegurada 2025'],
-    available: true
+  { 
+    id: 3, 
+    first_name: 'Carlos', 
+    last_name: 'López', 
+    email: 'carlos@email.com', 
+    created_at: '2025-01-01T10:00:00Z',
+    is_admin: false 
   },
-  {
-    id: '4',
-    code: 'MACEIO001',
-    name: 'Maceió Premium',
-    description: 'Relájate en las paradisíacas playas de Maceió con todo incluido',
-    price: 2586,
-    category: 'All Inclusive',
-    destination: 'Brasil',
-    duration: 7,
-    image: 'https://images.pexels.com/photos/1450353/pexels-photo-1450353.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['2 vuelos', '7 noches', 'All inclusive', 'Salidas confirmadas'],
-    available: true
-  },
-  {
-    id: '5',
-    code: 'CARIBE001',
-    name: 'Caribe Multiculturas',
-    description: 'Tour por múltiples islas del Caribe en un crucero de lujo',
-    price: 1850,
-    category: 'Crucero',
-    destination: 'Caribe',
-    duration: 8,
-    image: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Crucero', '8 días', 'Múltiples destinos', 'Todo incluido'],
-    available: true
-  },
-  {
-    id: '6',
-    code: 'MEXICO001',
-    name: 'México Playa del Carmen',
-    description: 'Vive la experiencia maya en las costas del Caribe mexicano',
-    price: 1245,
-    category: 'Playa',
-    destination: 'México',
-    duration: 6,
-    image: 'https://images.pexels.com/photos/2952849/pexels-photo-2952849.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['2 vuelos', '6 noches', 'Resort 4 estrellas', 'Excursiones'],
-    available: true
-  }
+];
+
+export const mockCities: City[] = [
+  { id: 1, name: 'Buenos Aires', country: 'Argentina' },
+  { id: 2, name: 'San Carlos de Bariloche', country: 'Argentina' },
+  { id: 3, name: 'Mendoza', country: 'Argentina' },
+  { id: 4, name: 'Córdoba', country: 'Argentina' },
+  { id: 5, name: 'Mar del Plata', country: 'Argentina' },
+];
+
+export const mockAirlines: Airline[] = [
+  { id: 1, name: 'Aerolíneas Argentinas' },
+  { id: 2, name: 'LATAM' },
+  { id: 3, name: 'Flybondi' },
+  { id: 4, name: 'JetSmart' },
+];
+
+export const mockAirports: Airport[] = [
+  { id: 1, name: 'Aeropuerto Internacional Ezeiza', code: 'EZE', city_id: 1 },
+  { id: 2, name: 'Aeropuerto Jorge Newbery', code: 'AEP', city_id: 1 },
+  { id: 3, name: 'Aeropuerto San Carlos de Bariloche', code: 'BRC', city_id: 2 },
+  { id: 4, name: 'Aeropuerto Governor Francisco Gabrielli', code: 'MDZ', city_id: 3 },
+  { id: 5, name: 'Aeropuerto Córdoba', code: 'COR', city_id: 4 },
+];
+
+export const mockBrands: Brand[] = [
+  { id: 1, name: 'Toyota' },
+  { id: 2, name: 'Ford' },
+  { id: 3, name: 'Chevrolet' },
+  { id: 4, name: 'Volkswagen' },
 ];
 
 export const mockServices: Service[] = [
-  // Airport Transfers
-  {
-    id: 's1',
-    code: 'TRANS001',
-    name: 'Transfer Aeropuerto VIP',
-    description: 'Servicio de transfer privado desde/hacia el aeropuerto con vehículo de lujo',
-    price: 85,
-    type: 'transfer',
-    category: 'VIP',
-    image: 'https://images.pexels.com/photos/1118448/pexels-photo-1118448.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Vehículo de lujo', 'Conductor profesional', 'Agua y snacks', 'WiFi gratuito'],
-    available: true,
-    destination: 'Todos'
-  },
-  {
-    id: 's2',
-    code: 'TRANS002',
-    name: 'Transfer Aeropuerto Compartido',
-    description: 'Servicio de transfer compartido económico desde/hacia el aeropuerto',
-    price: 25,
-    type: 'transfer',
-    category: 'Económico',
-    image: 'https://images.pexels.com/photos/1118448/pexels-photo-1118448.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Servicio compartido', 'Puntualidad garantizada', 'Equipaje incluido'],
-    available: true,
-    destination: 'Todos'
-  },
-  {
-    id: 's3',
-    code: 'TRANS003',
-    name: 'Transfer Aeropuerto Familiar',
-    description: 'Transfer privado para familias con espacio para equipaje y comodidades',
-    price: 65,
-    type: 'transfer',
-    category: 'Familiar',
-    image: 'https://images.pexels.com/photos/1118448/pexels-photo-1118448.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Vehículo amplio', 'Sillas para niños', 'Equipaje extra', 'Conductor bilingüe'],
-    available: true,
-    destination: 'Todos'
-  },
+  { id: 1, name: 'WiFi gratuito' },
+  { id: 2, name: 'Desayuno incluido' },
+  { id: 3, name: 'Piscina' },
+  { id: 4, name: 'Gimnasio' },
+  { id: 5, name: 'Spa' },
+  { id: 6, name: 'Estacionamiento' },
+];
 
-  // Car Rentals
+export const mockFlights: Flight[] = [
   {
-    id: 's4',
-    code: 'CAR001',
-    name: 'Auto Económico - 7 días',
-    description: 'Alquiler de auto económico por 7 días con seguro básico incluido',
-    price: 280,
-    type: 'car_rental',
-    category: 'Económico',
-    duration: 7,
-    image: 'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Seguro básico', 'Kilometraje ilimitado', 'Asistencia 24/7', 'GPS incluido'],
-    available: true,
-    destination: 'Todos'
+    id: 1,
+    origin_id: 1, // EZE
+    destiny_id: 3, // BRC
+    out_date: '2025-07-01',
+    back_date: '2025-07-08',
+    airline_id: 1,
+    price: 75000,
+    duration: '02:30:00',
+    class: 'Económica',
+    available_seats: 50
   },
   {
-    id: 's5',
-    code: 'CAR002',
-    name: 'SUV Premium - 7 días',
-    description: 'Alquiler de SUV premium por 7 días con seguro completo',
-    price: 520,
-    type: 'car_rental',
-    category: 'Premium',
-    duration: 7,
-    image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Seguro completo', 'Vehículo 4x4', 'Conductor adicional', 'Combustible incluido'],
-    available: true,
-    destination: 'Todos'
+    id: 2,
+    origin_id: 1, // EZE
+    destiny_id: 4, // MDZ
+    out_date: '2025-08-15',
+    back_date: '2025-08-22',
+    airline_id: 2,
+    price: 65000,
+    duration: '01:45:00',
+    class: 'Económica',
+    available_seats: 35
   },
   {
-    id: 's6',
-    code: 'CAR003',
-    name: 'Convertible Lujo - 3 días',
-    description: 'Alquiler de convertible de lujo para una experiencia única',
-    price: 450,
-    type: 'car_rental',
-    category: 'Lujo',
-    duration: 3,
-    image: 'https://images.pexels.com/photos/1592384/pexels-photo-1592384.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Vehículo convertible', 'Seguro premium', 'Servicio de conserjería', 'Entrega en hotel'],
-    available: true,
-    destination: 'Todos'
-  },
-
-  // Insurance
-  {
-    id: 's7',
-    code: 'SEG001',
-    name: 'Seguro de Viaje Básico',
-    description: 'Cobertura básica para gastos médicos y cancelación de viaje',
-    price: 45,
-    type: 'insurance',
-    category: 'Básico',
-    image: 'https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Gastos médicos hasta $50,000', 'Cancelación de viaje', 'Equipaje perdido', 'Asistencia 24/7'],
-    available: true,
-    destination: 'Todos'
-  },
-  {
-    id: 's8',
-    code: 'SEG002',
-    name: 'Seguro de Viaje Premium',
-    description: 'Cobertura completa con protección extendida y servicios adicionales',
-    price: 95,
-    type: 'insurance',
-    category: 'Premium',
-    image: 'https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Gastos médicos hasta $150,000', 'Cancelación por cualquier motivo', 'Deportes extremos', 'Repatriación'],
-    available: true,
-    destination: 'Todos'
-  },
-  {
-    id: 's9',
-    code: 'SEG003',
-    name: 'Seguro Familiar Completo',
-    description: 'Seguro familiar con cobertura para toda la familia',
-    price: 180,
-    type: 'insurance',
-    category: 'Familiar',
-    image: 'https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Cobertura familiar completa', 'Gastos médicos hasta $200,000', 'Protección de menores', 'Asistencia especializada'],
-    available: true,
-    destination: 'Todos'
-  },
-
-  // Excursions
-  {
-    id: 's10',
-    code: 'EXC001',
-    name: 'City Tour Completo',
-    description: 'Tour completo por los principales atractivos de la ciudad',
-    price: 120,
-    type: 'excursion',
-    category: 'Cultural',
-    duration: 1,
-    image: 'https://images.pexels.com/photos/2034335/pexels-photo-2034335.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Guía profesional', 'Transporte incluido', 'Entradas a museos', 'Almuerzo típico'],
-    available: true,
-    destination: 'Todos'
-  },
-  {
-    id: 's11',
-    code: 'EXC002',
-    name: 'Aventura en la Naturaleza',
-    description: 'Excursión de aventura con actividades al aire libre',
-    price: 180,
-    type: 'excursion',
-    category: 'Aventura',
-    duration: 1,
-    image: 'https://images.pexels.com/photos/1365425/pexels-photo-1365425.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Actividades extremas', 'Equipo incluido', 'Instructor certificado', 'Seguro de actividad'],
-    available: true,
-    destination: 'Todos'
-  },
-
-  // Meals
-  {
-    id: 's12',
-    code: 'MEAL001',
-    name: 'Cena Romántica',
-    description: 'Cena romántica en restaurante exclusivo con vista al mar',
-    price: 150,
-    type: 'meal',
-    category: 'Romántico',
-    image: 'https://images.pexels.com/photos/1581384/pexels-photo-1581384.jpeg?auto=compress&cs=tinysrgb&w=800',
-    features: ['Mesa privada', 'Menú degustación', 'Vino incluido', 'Música en vivo'],
-    available: true,
-    destination: 'Todos'
+    id: 3,
+    origin_id: 3, // BRC
+    destiny_id: 1, // EZE
+    out_date: '2025-07-10',
+    back_date: '2025-07-17',
+    airline_id: 3,
+    price: 45000,
+    duration: '02:15:00',
+    class: 'Premium',
+    available_seats: 25
   }
 ];
 
-export const mockOrders: Order[] = [
+export const mockHotels: Hotel[] = [
   {
-    id: 'ORD001',
-    customerId: '1',
-    customerName: 'Juan Cliente',
-    customerEmail: 'cliente@demo.com',
-    items: [
-      { product: mockProducts[0], quantity: 1, type: 'product' },
-      { service: mockServices[0], quantity: 2, type: 'service' }
-    ],
-    total: 950,
-    status: 'pending',
-    createdAt: new Date('2025-01-10')
+    id: 1,
+    nombre: 'Hotel Llao Llao',
+    city_id: 2,
+    address: 'Av. Ezequiel Bustillo, Km 25',
+    stars: 5,
+    price_per_night: 85000,
+    available_rooms: 8
   },
   {
-    id: 'ORD002',
-    customerId: '1',
-    customerName: 'Juan Cliente',
-    customerEmail: 'cliente@demo.com',
-    items: [
-      { product: mockProducts[2], quantity: 1, type: 'product' },
-      { service: mockServices[6], quantity: 1, type: 'service' }
-    ],
-    total: 2350,
-    status: 'processing',
-    createdAt: new Date('2025-01-12')
+    id: 2,
+    nombre: 'Sheraton Mendoza Hotel',
+    city_id: 3,
+    address: 'Primitivo de la Reta 989',
+    stars: 5,
+    price_per_night: 65000,
+    available_rooms: 12
+  },
+  {
+    id: 3,
+    nombre: 'Design Suites Bariloche',
+    city_id: 2,
+    address: 'Av. Bustillo Km 2.5',
+    stars: 4,
+    price_per_night: 45000,
+    available_rooms: 15
+  }
+];
+
+export const mockPackages: Package[] = [
+  {
+    id: 1,
+    name: 'Bariloche Aventura',
+    description: 'Vuelo + hotel 7 noches en Bariloche con actividades incluidas',
+    city_destiny_id: 2,
+    total_price: 250000,
+    includes_flight: true,
+    includes_hotel: true,
+    includes_car: false
+  },
+  {
+    id: 2,
+    name: 'Mendoza Vinos',
+    description: 'Vuelo + hotel 5 noches en Mendoza con tours de bodegas',
+    city_destiny_id: 3,
+    total_price: 180000,
+    includes_flight: true,
+    includes_hotel: true,
+    includes_car: true
+  },
+  {
+    id: 3,
+    name: 'Buenos Aires Cultural',
+    description: 'Hotel 4 noches en Buenos Aires con city tour',
+    city_destiny_id: 1,
+    total_price: 120000,
+    includes_flight: false,
+    includes_hotel: true,
+    includes_car: false
+  }
+];
+
+export const mockCars: Car[] = [
+  {
+    id: 1,
+    brand_id: 1,
+    model: 'Corolla',
+    city_id: 1,
+    price_per_day: 15000,
+    disponibility: true
+  },
+  {
+    id: 2,
+    brand_id: 2,
+    model: 'Focus',
+    city_id: 2,
+    price_per_day: 12000,
+    disponibility: true
+  },
+  {
+    id: 3,
+    brand_id: 3,
+    model: 'Onix',
+    city_id: 3,
+    price_per_day: 10000,
+    disponibility: false
   }
 ];

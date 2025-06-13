@@ -1,63 +1,101 @@
 export interface User {
-  id: string;
+  id: number;
+  first_name: string;
+  last_name: string;
   email: string;
-  name: string;
-  role: 'customer' | 'sales' | 'admin';
-  createdAt: Date;
+  password?: string;
+  created_at?: string;
+  is_admin?: boolean; // This will be derived from business logic, not stored in DB
 }
 
-export interface Product {
-  id: string;
-  code: string;
+export interface City {
+  id: number;
   name: string;
-  description: string;
+  country: string;
+}
+
+export interface Airport {
+  id: number;
+  name: string;
+  code: string;
+  city_id: number;
+}
+
+export interface Airline {
+  id: number;
+  name: string;
+}
+
+export interface Brand {
+  id: number;
+  name: string;
+}
+
+export interface Flight {
+  id: number;
+  origin_id: number;
+  destiny_id: number;
+  out_date: string;
+  back_date: string;
+  airline_id: number;
   price: number;
-  category: string;
-  destination: string;
-  duration: number;
-  image: string;
-  features: string[];
-  available: boolean;
+  duration: string;
+  class: string;
+  available_seats: number;
+}
+
+export interface Hotel {
+  id: number;
+  nombre: string;
+  city_id: number;
+  address: string;
+  stars: number;
+  price_per_night: number;
+  available_rooms: number;
 }
 
 export interface Service {
-  id: string;
-  code: string;
+  id: number;
+  name: string;
+}
+
+export interface HotelService {
+  hotel_id: number;
+  service_id: number;
+}
+
+export interface Package {
+  id: number;
   name: string;
   description: string;
-  price: number;
-  type: 'transfer' | 'car_rental' | 'insurance' | 'excursion' | 'meal';
-  category: string;
-  duration?: number;
-  image: string;
-  features: string[];
-  available: boolean;
-  destination?: string;
+  city_destiny_id: number;
+  total_price: number;
+  includes_flight: boolean;
+  includes_hotel: boolean;
+  includes_car: boolean;
+}
+
+export interface Car {
+  id: number;
+  brand_id: number;
+  model: string;
+  city_id: number;
+  price_per_day: number;
+  disponibility: boolean;
 }
 
 export interface CartItem {
-  product?: Product;
-  service?: Service;
-  quantity: number;
-  type: 'product' | 'service';
+  id: number;
+  cart_id: number;
+  type_item: string; // 'flight' | 'hotel' | 'package' | 'car'
+  item_id: number;
+  amount: number;
 }
 
-export interface Order {
-  id: string;
-  customerId: string;
-  customerName: string;
-  customerEmail: string;
-  items: CartItem[];
-  total: number;
-  status: 'pending' | 'processing' | 'delivered' | 'cancelled';
-  createdAt: Date;
-  deliveredAt?: Date;
+export interface Cart {
+  id: number;
+  user_id: number;
+  created_at: string;
 }
 
-export interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, name: string) => Promise<boolean>;
-  logout: () => void;
-  loading: boolean;
-}
+export type ProductType = 'flights' | 'hotels' | 'packages' | 'cars';

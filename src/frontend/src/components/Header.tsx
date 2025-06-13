@@ -1,210 +1,177 @@
 import React, { useState } from 'react';
-import { ShoppingCart, User, Search, Filter, LogOut, Settings, Package } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';
+import { Search, ShoppingCart, User, Menu, X, Plane, Hotel, Package, Car } from 'lucide-react';
+import { ProductType } from '../types';
 
 interface HeaderProps {
-  onSearch: (query: string) => void;
-  onFilter: (filter: string) => void;
+  cartItemsCount: number;
   onCartClick: () => void;
-  onUserClick: () => void;
-  onAdminClick?: () => void;
-  onSalesClick?: () => void;
-  activeTab?: string;
-  onTabChange?: (tab: string) => void;
+  onAuthClick: () => void;
+  currentUser: any;
+  onLogout: () => void;
+  onProductTypeChange: (type: ProductType) => void;
+  currentProductType: ProductType;
+  onSearch: (query: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-  onSearch, 
-  onFilter, 
-  onCartClick, 
-  onUserClick,
-  onAdminClick,
-  onSalesClick,
-  activeTab,
-  onTabChange
+const Header: React.FC<HeaderProps> = ({
+  cartItemsCount,
+  onCartClick,
+  onAuthClick,
+  currentUser,
+  onLogout,
+  onProductTypeChange,
+  currentProductType,
+  onSearch
 }) => {
-  const { user, logout } = useAuth();
-  const { totalItems } = useCart();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const productTypes = [
+    { key: 'flights' as ProductType, label: 'Vuelos', icon: Plane },
+    { key: 'hotels' as ProductType, label: 'Hoteles', icon: Hotel },
+    { key: 'packages' as ProductType, label: 'Paquetes', icon: Package },
+    { key: 'cars' as ProductType, label: 'Autos', icon: Car },
+  ];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch(searchQuery);
   };
 
-  const getFilters = () => {
-    if (activeTab === 'services') {
-      return [
-        'Todos',
-        'Transfers',
-        'Autos',
-        'Seguros',
-        'Excursiones',
-        'Gastronomía'
-      ];
-    }
-    return [
-      'Todos',
-      'Playa',
-      'Ciudad',
-      'Grupal',
-      'All Inclusive',
-      'Crucero'
-    ];
-  };
-
-  const filters = getFilters();
-
   return (
-    <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white shadow-lg">
-      {/* Top Bar */}
-      <div className="bg-blue-800 text-sm py-2 px-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex space-x-4">
-            <span>📞 +54 11 4000-0000</span>
-            <span>📧 info@beachtravel.com</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span>Moneda: USD</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Header */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
+    <header className="bg-white shadow-lg sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <div className="bg-yellow-400 p-2 rounded-lg">
-              <svg width="32" height="32" viewBox="0 0 32 32" className="text-blue-800">
-                <path fill="currentColor" d="M16 2L2 12v18h28V12L16 2z"/>
-                <circle cx="16" cy="20" r="6" fill="white"/>
-                <circle cx="16" cy="20" r="3" fill="currentColor"/>
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Beach Travel</h1>
-              <p className="text-sm text-blue-200">Tu aventura comienza aquí</p>
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-sky-500 to-yellow-500 bg-clip-text text-transparent">
+                TravelCart
+              </h1>
             </div>
           </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-8">
+            {productTypes.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => onProductTypeChange(key)}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                  currentProductType === key
+                    ? 'bg-sky-100 text-sky-700'
+                    : 'text-gray-600 hover:text-sky-600 hover:bg-sky-50'
+                }`}
+              >
+                <Icon size={18} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </nav>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl mx-8">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder={activeTab === 'services' ? "Buscar servicios..." : "Buscar destinos, paquetes..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
-            <button
-              type="submit"
-              className="ml-2 px-6 py-2 bg-yellow-400 text-blue-800 font-semibold rounded-full hover:bg-yellow-300 transition-colors duration-200"
-            >
-              Buscar
-            </button>
-          </form>
+          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+            <form onSubmit={handleSearch} className="w-full">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Buscar destinos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                />
+              </div>
+            </form>
+          </div>
 
-          {/* Right Actions */}
+          {/* Right Section */}
           <div className="flex items-center space-x-4">
             {/* Cart */}
             <button
               onClick={onCartClick}
-              className="relative p-2 hover:bg-blue-700 rounded-lg transition-colors duration-200"
+              className="relative p-2 text-gray-600 hover:text-sky-600 transition-colors duration-200"
             >
-              <ShoppingCart className="h-6 w-6" />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-yellow-400 text-blue-800 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {totalItems}
+              <ShoppingCart size={24} />
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-yellow-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemsCount}
                 </span>
               )}
             </button>
 
             {/* User Menu */}
             <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 p-2 hover:bg-blue-700 rounded-lg transition-colors duration-200"
-              >
-                <User className="h-6 w-6" />
-                <span className="hidden md:inline">{user?.name}</span>
-              </button>
-
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+              {currentUser ? (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-700 hidden sm:block">{currentUser.name}</span>
                   <button
-                    onClick={() => {
-                      onUserClick();
-                      setShowUserMenu(false);
-                    }}
-                    className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                    onClick={onLogout}
+                    className="bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200"
                   >
-                    <User className="h-4 w-4" />
-                    <span>Mi Perfil</span>
-                  </button>
-                  
-                  {user?.role === 'admin' && onAdminClick && (
-                    <button
-                      onClick={() => {
-                        onAdminClick();
-                        setShowUserMenu(false);
-                      }}
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                    >
-                      <Settings className="h-4 w-4" />
-                      <span>Panel Admin</span>
-                    </button>
-                  )}
-                  
-                  {(user?.role === 'sales' || user?.role === 'admin') && onSalesClick && (
-                    <button
-                      onClick={() => {
-                        onSalesClick();
-                        setShowUserMenu(false);
-                      }}
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                    >
-                      <Package className="h-4 w-4" />
-                      <span>Panel de Ventas</span>
-                    </button>
-                  )}
-                  
-                  <hr className="my-1" />
-                  <button
-                    onClick={logout}
-                    className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 w-full text-left"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>Cerrar Sesión</span>
+                    Salir
                   </button>
                 </div>
+              ) : (
+                <button
+                  onClick={onAuthClick}
+                  className="flex items-center space-x-2 bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200"
+                >
+                  <User size={18} />
+                  <span>Ingresar</span>
+                </button>
               )}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Filter Bar */}
-      <div className="bg-blue-700 py-3">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center space-x-2 overflow-x-auto">
-            <Filter className="h-4 w-4 flex-shrink-0" />
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => onFilter(filter)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200"
-              >
-                {filter}
-              </button>
-            ))}
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 text-gray-600"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {/* Mobile Search */}
+              <form onSubmit={handleSearch} className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <input
+                    type="text"
+                    placeholder="Buscar destinos..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                  />
+                </div>
+              </form>
+
+              {/* Mobile Navigation */}
+              {productTypes.map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    onProductTypeChange(key);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                    currentProductType === key
+                      ? 'bg-sky-100 text-sky-700'
+                      : 'text-gray-600 hover:text-sky-600 hover:bg-sky-50'
+                  }`}
+                >
+                  <Icon size={18} />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
