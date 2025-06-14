@@ -46,6 +46,55 @@ userRouter.post('/register', asyncHandler(userController.register.bind(userContr
 userRouter.post('/login', asyncHandler(userController.login.bind(userController)))
 
 /**
+ * @route GET /users
+ * @desc Devuelve todos los usuarios registrados
+ * @access Público
+ */
+userRouter.get('/', asyncHandler(userController.getAll.bind(userController)))
+
+/**
+ * @route GET /users/:id
+ * @desc Devuelve un usuario por id
+ * @access Público
+ * @param {string} req.params.id - Id del usuario
+ */
+userRouter.get('/:id', asyncHandler(userController.getUserById.bind(userController)))
+
+/**
+ * @route GET /users/:email
+ * @desc Devuelve un usuario por email
+ * @access Público
+ * @param {string} req.params.email - Email del usuario
+ */
+userRouter.get('/:email', asyncHandler(userController.getUserByEmail.bind(userController)))
+
+/**
+ * @route POST /users/:id
+ * @desc Crea un nuevo usuario
+ * @access Privado
+ * @param {string} req.body.first_name - Primer nombre del usuario
+ * @param {string} req.body.last_name - Apellido del usuario
+ * @param {string} req.body.email - Email del usuario
+ * @param {string} req.body.password - Contraseña del usuario
+ * @param {string} req.body.phone - Numero de telefono del usuario
+ * @param {string} req.body.address - Dirección del usuario
+ */
+userRouter.post('/', asyncHandler(userController.createUser.bind(userController)))
+
+/**
+ * @route DELETE /users/:id
+ * @desc Elimina un usuario por id
+ * @access Privado
+ * @param {string} req.body.first_name - Primer nombre del usuario
+ * @param {string} req.body.last_name - Apellido del usuario
+ * @param {string} req.body.email - Email del usuario
+ * @param {string} req.body.password - Contraseña del usuario
+ * @param {string} req.body.phone - Numero de telefono del usuario
+ * @param {string} req.body.address - Dirección del usuario
+ */
+userRouter.delete('/:id', asyncHandler(userController.deleteUser.bind(userController)))
+
+/**
  * Middleware para manejo centralizado de errores
  * @param {Error} err - Objeto de error
  * @param {Object} req - Objeto de solicitud de Express

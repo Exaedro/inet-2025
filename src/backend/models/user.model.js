@@ -1,5 +1,6 @@
 import { supabase } from '../database.js'
 import bcrypt from 'bcrypt'
+import { encrypt } from '../utils/encrypt.js'
 import ClientError from '../utils/clientError.js'
 
 /**
@@ -91,115 +92,85 @@ class UserModel {
         return newUser
     }
 
-    /**
-     * Obtiene el perfil de un usuario por su ID
-     * @param {number} userId - ID del usuario
-     * @returns {Promise<Object>} Perfil del usuario
-     */
-    static async getProfile(userId) {
-        const { data: user, error } = await supabase
-            .from('users')
-            .select('id, first_name, last_name, email, phone, address, created_at')
-            .eq('id', userId)
-            .single()
+    static async getAll() {
+        const { data, error } = await supabase
+        .from('users')
+        .select('id, first_name, last_name, email, phone, address, created_at')
 
-        if (error || !user) {
-            throw new ClientError('User not found', 404)
-        }
+        if(error) throw new Error(error)
+
+        const users = data.map(user => {
+            return {
+                ...user  
+            }
+        })
+
+        return users
+    } 
+
+    static async getUserById(id) {
+        const { data: user, error } = await supabase
+        .from('users')
+        .select('id, first_name, last_name, email, phone, address, created_at')
+        .eq('id', id)
+        .single()
+
+        if(error) throw new Error(error)
 
         return user
     }
 
-    /**
-     * Actualiza el perfil de un usuario
-     * @param {number} userId - ID del usuario
-     * @param {Object} updates - Campos a actualizar (first_name, last_name, email, password)
-     * @returns {Promise<Object>} Perfil actualizado
-     */
-    static async updateProfile(userId, updates) {
-        // Si se está actualizando la contraseña, hashearla
-        if (updates.password) {
-            const saltRounds = 10
-            updates.password = await bcrypt.hash(updates.password, saltRounds)
-        }
+    static async getUserByEmail(email) {
+        const { data: user, error } = await supabase
+        .from('users')
+        .select('id, first_name, last_name, email, phone, address, created_at')
+        .eq('email', email)
+        .single()
 
-        const { data: updatedUser, error } = await supabase
-            .from('users')
-            .update(updates)
-            .eq('id', userId)
-            .select('id, first_name, last_name, email, phone, address, created_at')
-            .single()
+        if(error) throw new Error(error)
 
-        if (error) {
-            throw new Error(error.message)
-        }
-
-        return updatedUser
+        return user
     }
 
-    /**
-     * Elimina un usuario por su ID
-     * @param {number} userId - ID del usuario a eliminar
-     * @returns {Promise<boolean>} True si se eliminó correctamente
-     */
-    static async deleteUser(userId) {
-        const { error } = await supabase
-            .from('users')
-            .delete()
-            .eq('id', userId)
+    static async createUser({ 
+        first_name,
+        last_name,
+        email,
+        phone,
+        password,
+        address,
+        created_at
+    }) {
+        const hashedPassword = await encrypt(password)
 
-        if (error) {
-            throw new Error(error.message)
-        }
+        const { data, error } = await supabase
+        .from('users')
+        .insert({
+            first_name,
+            last_name,
+            email,
+            phone,
+            password: hashedPassword,
+            address,
+            created_at
+        })
+        .select('id, first_name, last_name, email, phone, address, created_at')
+        .single()
 
-        return true
+        if(error) throw new Error(error.message)
+
+        return data
     }
 
-    /**
-     * Obtiene el carrito de compras de un usuario
-     * @param {number} userId - ID del usuario
-     * @returns {Promise<Object>} Carrito del usuario
-     */
-    static async getUserCart(userId) {
-        // Primero obtenemos o creamos el carrito del usuario
-        let { data: cart, error: cartError } = await supabase
-            .from('cart')
-            .select('*')
-            .eq('user_id', userId)
-            .single()
+    static async deleteUser(id) {
+        const { data, error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', id)
 
-        if (cartError && cartError.code !== 'PGRST116') { // PGRST116 = no rows returned
-            throw new Error(cartError.message)
-        }
+        if(error) throw new Error(error)
 
-        // Si no existe el carrito, lo creamos
-        if (!cart) {
-            const { data: newCart, error: createError } = await supabase
-                .from('cart')
-                .insert([{ user_id: userId }])
-                .select()
-                .single()
-
-            if (createError) {
-                throw new Error(createError.message)
-            }
-            cart = newCart
-        }
-
-        // Obtenemos los ítems del carrito
-        const { data: items, error: itemsError } = await supabase
-            .from('cart_items')
-            .select('*')
-            .eq('cart_id', cart.id)
-
-        if (itemsError) {
-            throw new Error(itemsError.message)
-        }
-
-        return {
-            ...cart,
-            items: items || []
-        }
+        return data
     }
 
     /**
@@ -208,18 +179,6 @@ class UserModel {
      */
     static async logout() {
         const { error } = await supabase.auth.signOut()
-        if (error) throw new Error(error.message)
-    }
-
-    /**
-     * Solicita un restablecimiento de contraseña
-     * @param {string} email - Correo electrónico del usuario
-     * @returns {Promise<void>}
-     */
-    static async requestPasswordReset(email) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${process.env.FRONTEND_URL}/reset-password`
-        })
         if (error) throw new Error(error.message)
     }
 
