@@ -70,19 +70,18 @@ const Cart: React.FC<CartProps> = ({
     switch (item.type_item) {
       case 'flight':
         product = flights.find(f => f.id === item.item_id);
+        console.log(product)
         if (product) {
-          const originAirport = airports.find(a => a.id === product.origin_id);
-          const destinyAirport = airports.find(a => a.id === product.destiny_id);
-          const originCity = cities.find(c => c.id === originAirport?.city_id);
-          const destinyCity = cities.find(c => c.id === destinyAirport?.city_id);
-          name = `Vuelo ${originCity?.name} → ${destinyCity?.name}`;
+          const originCity = `${product.origin_city}, ${product.origin_country}`
+          const destinyCity = `${product.destination_city}, ${product.destination_country}`
+          name = `Vuelo ${originCity} → ${destinyCity}`;
           price = product.price;
         }
         break;
       case 'hotel':
         product = hotels.find(h => h.id === item.item_id);
         if (product) {
-          name = product.nombre;
+          name = product.name;
           price = product.price_per_night;
         }
         break;
@@ -176,7 +175,7 @@ const Cart: React.FC<CartProps> = ({
                           <span className="text-2xl">{getItemIcon(item.type_item)}</span>
                           <div className="flex-1">
                             <h3 className="font-semibold text-gray-900">{name}</h3>
-                            <p className="text-sm text-gray-600 capitalize">{item.type_item}</p>
+                            <p className="text-sm text-gray-600 capitalize">{item.type_item === 'flight' ? 'Vuelo' : item.type_item === 'hotel' ? 'Hotel' : item.type_item === 'package' ? 'Paquete' : item.type_item === 'car' ? 'Auto' : 'Producto'}</p>
                             <p className="text-lg font-bold text-sky-600 mt-1">
                               {formatPrice(price)}
                             </p>
