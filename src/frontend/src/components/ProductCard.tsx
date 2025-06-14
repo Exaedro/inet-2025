@@ -83,7 +83,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, type, onAddToCart })
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center space-x-2">
               <Plane size={20} />
-              <span className="font-semibold">{getAirlineName(flight.airline_id)}</span>
+              <span className="font-semibold">{flight.airline_name}</span>
             </div>
             <span className="bg-white/20 px-2 py-1 rounded-full text-sm">{flight.class}</span>
           </div>
@@ -95,7 +95,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, type, onAddToCart })
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm text-gray-600">
             <MapPin size={16} className="inline mr-1" />
-            {getAirportCity(flight.origin_id)} → {getAirportCity(flight.destiny_id)}
+            {`${flight.origin_city}, ${flight.origin_country}`} → {`${flight.destination_city}, ${flight.destination_country}`}
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <Clock size={16} className="mr-1" />
@@ -152,7 +152,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, type, onAddToCart })
         <div className="mb-4">
           <div className="flex items-center text-sm text-gray-600 mb-2">
             <MapPin size={16} className="mr-1" />
-            {getDestinationName(hotel.city_id)}
+            {hotel.city_name}
           </div>
           <p className="text-sm text-gray-600">{hotel.address}</p>
         </div>
