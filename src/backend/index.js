@@ -22,6 +22,7 @@ import flightRouter from './routes/flight.routes.js';
 import hotelRouter from './routes/hotel.routes.js';
 import packageRouter from './routes/package.routes.js';
 import serviceRouter from './routes/service.routes.js';
+import orderRouter from './routes/order.routes.js';
 import testRouter from './routes/test.routes.js';
 import router from './routes/routes.test.js';
 
@@ -37,6 +38,7 @@ app.use('/api/flights', flightRouter)
 app.use('/api/hotels', hotelRouter)
 app.use('/api/packages', packageRouter)
 app.use('/api/services', serviceRouter)
+app.use('/api/orders', orderRouter)
 // app.use('/api/test', testRouter)
 app.use('/api/test', router)
 
