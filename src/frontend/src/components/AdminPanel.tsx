@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 
 import { API_URL } from '../data/mockData';
 
-import { 
-  Package2, 
-  Users, 
-  ShoppingCart, 
-  TrendingUp, 
-  Plus, 
+import {
+  Package2,
+  Users,
+  ShoppingCart,
+  TrendingUp,
+  Plus,
   Edit,
   Trash2,
   Eye,
@@ -73,12 +73,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     });
   };
 
-  const handleDeliverOrder = (orderId: number) => {
+  const handleDeliverOrder = async (orderId: number) => {
     setOrders(prevOrders =>
       prevOrders.map(order =>
         order.id === orderId ? { ...order, status: 'delivered' as const } : order
       )
     );
+
+    await fetch(API_URL + '/orders/' + orderId, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'delivered' }),
+    });
   };
 
   const handleCancelOrder = (orderId: number) => {
@@ -117,7 +125,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
-      
+
       <div className="absolute inset-4 bg-white rounded-lg shadow-xl overflow-hidden">
         <div className="flex h-full">
           {/* Sidebar */}
@@ -131,27 +139,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 <X size={24} />
               </button>
             </div>
-            
+
             <nav className="p-4 space-y-2">
               <button
                 onClick={() => setActiveTab('dashboard')}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                  activeTab === 'dashboard' 
-                    ? 'bg-sky-100 text-sky-700' 
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeTab === 'dashboard'
+                    ? 'bg-sky-100 text-sky-700'
                     : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 <TrendingUp size={20} />
                 <span>Dashboard</span>
               </button>
-              
+
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                  activeTab === 'orders' 
-                    ? 'bg-sky-100 text-sky-700' 
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeTab === 'orders'
+                    ? 'bg-sky-100 text-sky-700'
                     : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 <ShoppingCart size={20} />
                 <span>Pedidos</span>
@@ -161,14 +167,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   </span>
                 )}
               </button>
-              
+
               <button
                 onClick={() => setActiveTab('products')}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                  activeTab === 'products' 
-                    ? 'bg-sky-100 text-sky-700' 
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeTab === 'products'
+                    ? 'bg-sky-100 text-sky-700'
                     : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 <Package2 size={20} />
                 <span>Productos</span>
@@ -181,7 +186,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
             {activeTab === 'dashboard' && (
               <div className="p-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                   <div className="bg-white border rounded-lg p-6">
                     <div className="flex items-center justify-between">
@@ -192,7 +197,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       <ShoppingCart size={32} className="text-yellow-500" />
                     </div>
                   </div>
-                  
+
                   <div className="bg-white border rounded-lg p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -202,7 +207,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       <TrendingUp size={32} className="text-green-500" />
                     </div>
                   </div>
-                  
+
                   <div className="bg-white border rounded-lg p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -241,7 +246,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-gray-900">Gestión de Pedidos</h3>
                 </div>
-                
+
                 <div className="bg-white border rounded-lg overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -334,7 +339,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     <span>Agregar Producto</span>
                   </button>
                 </div>
-                
+
                 <div className="bg-white border rounded-lg p-6">
                   <p className="text-gray-600 text-center py-8">
                     Funcionalidad de gestión de productos en desarrollo.
