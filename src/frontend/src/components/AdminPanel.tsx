@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+import { API_URL } from '../data/mockData';
+
 import { 
   Package2, 
   Users, 
@@ -14,44 +17,25 @@ import {
 
 interface Order {
   id: number;
-  user_id: number;
-  user_name: string;
-  items: Array<{
-    name: string;
-    type: string;
-    amount: number;
+  created_at: string;
+  users: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    phone: string;
+    address: string;
+  };
+  order_items: Array<{
+    id: number;
+    order_id: number;
+    type_item: string;
+    item_id: number;
+    quantity: number;
     price: number;
   }>;
-  total: number;
+  total_price: number;
   status: 'pending' | 'delivered' | 'cancelled';
-  created_at: string;
 }
-
-const mockOrders: Order[] = [
-  {
-    id: 1,
-    user_id: 1,
-    user_name: 'Juan Pérez',
-    items: [
-      { name: 'Vuelo Buenos Aires → Bariloche', type: 'flight', amount: 2, price: 75000 },
-      { name: 'Hotel Llao Llao', type: 'hotel', amount: 1, price: 85000 }
-    ],
-    total: 235000,
-    status: 'pending',
-    created_at: '2025-01-15T10:30:00Z'
-  },
-  {
-    id: 2,
-    user_id: 3,
-    user_name: 'Carlos López',
-    items: [
-      { name: 'Paquete Mendoza Vinos', type: 'package', amount: 1, price: 180000 }
-    ],
-    total: 180000,
-    status: 'delivered',
-    created_at: '2025-01-14T14:20:00Z'
-  }
-];
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -60,7 +44,16 @@ interface AdminPanelProps {
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products'>('dashboard');
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const ordersRes = await fetch(API_URL + '/orders');
+      const ordersData = await ordersRes.json();
+      setOrders(ordersData.data);
+    };
+    fetchOrders();
+  }, []);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -117,7 +110,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const pendingOrders = orders.filter(order => order.status === 'pending');
   const totalRevenue = orders
     .filter(order => order.status === 'delivered')
-    .reduce((sum, order) => sum + order.total, 0);
+    .reduce((sum, order) => sum + order.total_price, 0);
 
   if (!isOpen) return null;
 
@@ -228,10 +221,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div>
                           <p className="font-semibold">Pedido #{order.id}</p>
-                          <p className="text-sm text-gray-600">{order.user_name} - {formatDate(order.created_at)}</p>
+                          <p className="text-sm text-gray-600">{order.users.first_name} {order.users.last_name} - {formatDate(order.created_at)}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold">{formatPrice(order.total)}</p>
+                          <p className="font-bold">{formatPrice(order.total_price)}</p>
                           <span className={`inline-block px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
                             {getStatusText(order.status)}
                           </span>
@@ -284,19 +277,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{order.user_name}</div>
+                              <div className="text-sm text-gray-900">{order.users.first_name} {order.users.last_name}</div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="text-sm text-gray-900">
-                                {order.items.map((item, index) => (
+                                {order.order_items.map((item, index) => (
                                   <div key={index} className="mb-1">
-                                    {item.name} (x{item.amount})
+                                    {item.type_item} (x{item.quantity})
                                   </div>
                                 ))}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-bold text-gray-900">{formatPrice(order.total)}</div>
+                              <div className="text-sm font-bold text-gray-900">{formatPrice(order.total_price)}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>

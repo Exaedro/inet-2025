@@ -23,7 +23,7 @@ class OrderModel {
     static async getAll() {
         const { data, error } = await supabase
             .from('orders')
-            .select('id, created_at, users(id, first_name, last_name, phone, address), order_items(id, order_id, type_item, item_id, quantity, price)')
+            .select('id, status, created_at, users(id, first_name, last_name, phone, address), order_items(id, order_id, type_item, item_id, quantity, price)')
 
         if (error) throw new Error(error.message)
 
@@ -35,7 +35,7 @@ class OrderModel {
     static async getById(id) {
         const { data, error } = await supabase
             .from('orders')
-            .select('id, created_at, users(id, first_name, last_name, phone, address), order_items(id, order_id, type_item, item_id, quantity, price)')
+            .select('id, status, created_at, users(id, first_name, last_name, phone, address), order_items(id, order_id, type_item, item_id, quantity, price)')
             .eq('id', id)
             .single()
 
@@ -50,7 +50,7 @@ class OrderModel {
         const { data, error } = await supabase
             .from('orders')
             .insert([order])
-            .select('id, created_at, users(id, first_name, last_name, phone, address), order_items(id, order_id, type_item, item_id, quantity, price)')
+            .select('id, status, created_at, users(id, first_name, last_name, phone, address), order_items(id, order_id, type_item, item_id, quantity, price)')
             .single()
 
         if (error) throw new Error(error.message)
@@ -65,7 +65,7 @@ class OrderModel {
             .from('orders')
             .update(order)
             .eq('id', id)
-            .select('id, created_at, users(id, first_name, last_name, phone, address), order_items(id, order_id, type_item, item_id, quantity, price)')
+            .select('id, status,     created_at, users(id, first_name, last_name, phone, address), order_items(id, order_id, type_item, item_id, quantity, price)')
             .single()
 
         if (error) throw new Error(error.message)
