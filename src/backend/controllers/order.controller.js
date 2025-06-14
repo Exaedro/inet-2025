@@ -1,3 +1,5 @@
+import { submit } from "../config/mercadoPagoClient.js"
+
 class OrderController {
     constructor({ orderModel }) {
         this.orderModel = orderModel
@@ -131,6 +133,30 @@ class OrderController {
             })
         }
     }   
+
+    async pay(req, res) {
+        try {
+            const data = await this.orderModel.getById(Number(req.params.id))
+            
+            const order = data.order_items.map(item => ({
+                id: item.id,
+                title: item.name,
+                unit_price: item.price,
+                quantity: item.quantity
+            }))
+
+            const paymentUrl = await submit(order)
+            
+            res.redirect(paymentUrl)
+        } catch (error) {
+            console.error('Error paying order:', error)
+            const status = error.statusCode || 500
+            res.status(status).json({ 
+                success: false, 
+                message: error.message || 'Error paying order' 
+            })
+        }
+    }
 }
 
 export default OrderController

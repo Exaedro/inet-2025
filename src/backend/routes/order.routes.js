@@ -19,6 +19,10 @@ orderRouter.get('/:id', asyncHandler(async (req, res) => {
     await orderController.getById(req, res)
 }))
 
+orderRouter.get('/:id/pay', asyncHandler(async (req, res) => {
+    await orderController.pay(req, res)
+}))
+
 // Create new order
 orderRouter.post('/', asyncHandler(async (req, res) => {
     await orderController.create(req, res)

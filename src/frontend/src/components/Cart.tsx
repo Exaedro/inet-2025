@@ -10,7 +10,6 @@ interface CartProps {
   items: CartItem[];
   onUpdateQuantity: (itemId: number, amount: number) => void;
   onRemoveItem: (itemId: number) => void;
-  onCheckout: () => void;
 }
 
 const Cart: React.FC<CartProps> = ({
@@ -19,7 +18,6 @@ const Cart: React.FC<CartProps> = ({
   items,
   onUpdateQuantity,
   onRemoveItem,
-  onCheckout
 }) => {
   const [cities, setCities] = useState<City[]>([]);
   const [airports, setAirports] = useState<Airport[]>([]);
@@ -130,6 +128,42 @@ const Cart: React.FC<CartProps> = ({
     }
   };
 
+  const checkout = async () => {
+    const order = await fetch(API_URL + '/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: 9
+      })
+    })
+
+    const orderData = await order.json()
+
+    const ccItems = items.map(item => {
+      const { price } = getProductDetails(item);
+      return {
+        item_id: item.id,
+        price,
+        quantity: item.amount,
+        type_item: typeof item?.class === 'string' ? 'flight' : typeof item?.price_per_night === 'number' ? 'hotel' : typeof item?.includes_flight === 'boolean' ? 'package' : 'car' ,
+      }
+    })
+
+    for(const item of ccItems) {
+      await fetch(API_URL + '/orders/' + orderData.data.id + '/order-items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(item)
+      })
+    }
+
+    window.location.href = API_URL + '/orders/' + orderData.data.id + '/pay'
+  }
+
   if (!isOpen) return null;
 
   return (
@@ -233,7 +267,7 @@ const Cart: React.FC<CartProps> = ({
               </div>
               
               <button
-                onClick={onCheckout}
+                onClick={() => checkout()}
                 className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 Proceder al Pago
