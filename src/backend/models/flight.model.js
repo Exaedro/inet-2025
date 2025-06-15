@@ -155,7 +155,7 @@ class FlightModel {
 
         const { data: flights, error } = await query
         if (error) throw new Error(error.message)
-
+            
         return flights.map(flight => ({
             id: flight.id,
             price: flight.price,

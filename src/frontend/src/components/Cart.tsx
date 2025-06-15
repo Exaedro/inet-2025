@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
-import { Airport, Brand, Car, CartItem, Hotel, Package, City, Flight } from '../types';
+import { User, Airport, Brand, Car, CartItem, Hotel, Package, City, Flight } from '../types';
 
 import { API_URL } from '../data/mockData';
 
@@ -26,9 +26,17 @@ const Cart: React.FC<CartProps> = ({
   const [packages, setPackages] = useState<Package[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
   const [flights, setFlights] = useState<Flight[]>([]);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      const userRes = await fetch(API_URL + '/auth/me', {
+        credentials: 'include',
+      });
+
+      const userData = await userRes.json();
+      setUser(userData.user);
+
       const flightsRes = await fetch(API_URL + '/flights')
       const flightsData = await flightsRes.json()
       setFlights(flightsData.data)
@@ -64,11 +72,10 @@ const Cart: React.FC<CartProps> = ({
     let product: any = null;
     let name = '';
     let price = 0;
-    
+
     switch (item.type_item) {
       case 'flight':
         product = flights.find(f => f.id === item.item_id);
-        console.log(product)
         if (product) {
           const originCity = `${product.origin_city}, ${product.origin_country}`
           const destinyCity = `${product.destination_city}, ${product.destination_country}`
@@ -99,7 +106,7 @@ const Cart: React.FC<CartProps> = ({
         }
         break;
     }
-    
+
     return { product, name, price };
   };
 
@@ -135,23 +142,35 @@ const Cart: React.FC<CartProps> = ({
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        user_id: 9
+        user_id: user?.id
       })
     })
 
     const orderData = await order.json()
 
     const ccItems = items.map(item => {
+      let type_item: string;
+
+      if (typeof item?.class !== 'undefined' ) {
+        type_item = 'flight';
+      } else if (typeof item.price_per_night !== 'undefined') {
+        type_item = 'hotel';
+      } else if (typeof item.includes_flight !== 'undefined') {
+        type_item = 'package';
+      } else {
+        type_item = 'car';
+      }
+
       const { price } = getProductDetails(item);
       return {
         item_id: item.id,
         price,
         quantity: item.amount,
-        type_item: typeof item?.class === 'string' ? 'flight' : typeof item?.price_per_night === 'number' ? 'hotel' : typeof item?.includes_flight === 'boolean' ? 'package' : 'car' ,
+        type_item,
       }
     })
 
-    for(const item of ccItems) {
+    for (const item of ccItems) {
       await fetch(API_URL + '/orders/' + orderData.data.id + '/order-items', {
         method: 'POST',
         headers: {
@@ -169,7 +188,7 @@ const Cart: React.FC<CartProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
-      
+
       <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -198,7 +217,7 @@ const Cart: React.FC<CartProps> = ({
               <div className="space-y-4">
                 {items.map((item) => {
                   const { name, price } = getProductDetails(item);
-                  
+
                   return (
                     <div
                       key={item.id}
@@ -265,14 +284,14 @@ const Cart: React.FC<CartProps> = ({
                   {formatPrice(getTotalPrice())}
                 </span>
               </div>
-              
+
               <button
                 onClick={() => checkout()}
                 className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 Proceder al Pago
               </button>
-              
+
               <p className="text-xs text-gray-500 text-center mt-2">
                 Envío gratuito en todos los paquetes
               </p>

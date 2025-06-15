@@ -69,6 +69,25 @@ function App() {
     };
     fetchData();
   }, [currentProductType]);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch(API_URL + '/auth/me', {
+          credentials: 'include',
+        });
+  
+        if (!res.ok) throw new Error('No session');
+  
+        const { user } = await res.json();
+        setCurrentUser(user);
+      } catch (err) {
+        setCurrentUser(null);
+      }
+    };
+  
+    fetchCurrentUser();
+  }, []);
   
   // Filtrar productos según la búsqueda y el tipo
   useEffect(() => {

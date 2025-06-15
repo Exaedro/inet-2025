@@ -14,8 +14,9 @@ class UserController {
     }
 
     async getAll(req, res) {
+        const filters = req.query || {}
         try {
-            const result = await this.userModel.getAll()
+            const result = await this.userModel.getAll(filters)
 
             res.status(200).json({
                 success: true,
@@ -45,21 +46,21 @@ class UserController {
         }
     }
 
-    async getUserByEmail(req, res) {
-        try {
-            const result = await this.userModel.getUserByEmail(req.params.email)
+    // async getUserByEmail(req, res) {
+    //     try {
+    //         const result = await this.userModel.getUserByEmail(req.params.email)
 
-            res.status(200).json({
-                success: true,
-                data: result
-            })
-        } catch(err) {
-            res.status(500).json({
-                success: false,
-                message: err.message || 'error getting user'
-            })
-        }
-    }
+    //         res.status(200).json({
+    //             success: true,
+    //             data: result
+    //         })
+    //     } catch(err) {
+    //         res.status(500).json({
+    //             success: false,
+    //             message: err.message || 'error getting user'
+    //         })
+    //     }
+    // }
 
     async createUser(req, res) {
         const { first_name, last_name, email, password, phone, address } = req.body || {}
@@ -95,73 +96,6 @@ class UserController {
             res.status(500).json({
                 success: false, 
                 message: 'error deleting user'
-            })
-        }
-    }
-
-    /**
-     * Maneja la solicitud de registro de un nuevo usuario
-     * @param {Object} req - Objeto de solicitud de Express
-     * @param {Object} req.body - Cuerpo de la solicitud
-     * @param {string} req.body.first_name - Nombre del usuario
-     * @param {string} req.body.last_name - Apellido del usuario
-     * @param {string} req.body.email - Correo electrónico del usuario
-     * @param {string} req.body.password - Contraseña del usuario
-     * @param {string} req.body.phone - Telefono del usuario
-     * @param {string} req.body.address - Direccion del usuario
-     * @param {Object} res - Objeto de respuesta de Express
-     * @returns {Promise<void>} No devuelve ningún valor directamente, pero envía una respuesta JSON
-     */
-    async register(req, res) {
-        const { first_name, last_name, email, password, phone, address } = req.body
-
-        // Validación de campos
-        Validation.validateRegister({ first_name, last_name, email, password, phone, address })
-
-        try {
-            const result = await this.userModel.register({ first_name, last_name, email, password, phone, address })
-
-            res.status(201).json({ 
-                success: true, 
-                message: 'user registered successfully',
-                data: result 
-            })
-        } catch(err) {
-            console.error('Error en register:', err)
-            res.status(400).json({ 
-                success: false, 
-                message: err.message || 'error registering user'
-            })
-        }
-    }
-
-    /**
-     * Maneja la solicitud de inicio de sesión de un usuario
-     * @param {Object} req - Objeto de solicitud de Express
-     * @param {Object} req.body - Cuerpo de la solicitud
-     * @param {string} req.body.email - Correo electrónico del usuario
-     * @param {string} req.body.password - Contraseña del usuario
-     * @param {Object} res - Objeto de respuesta de Express
-     * @returns {Promise<void>} No devuelve ningún valor directamente, pero envía una respuesta JSON
-     */
-    async login(req, res) {
-        const { email, password } = req.body || {}
-
-        // Validación de campos
-        Validation.validateLogin({ email, password })
-
-        try {
-            const user = await this.userModel.login({ email, password })
-            res.status(200).json({ 
-                success: true, 
-                message: 'login successful',
-                data: user 
-            })
-        } catch(err) {
-            console.error('Error en login:', err.message)
-            res.status(401).json({ 
-                success: false, 
-                message: err.message || 'error logging in'
             })
         }
     }

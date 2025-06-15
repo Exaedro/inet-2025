@@ -92,10 +92,14 @@ class UserModel {
         return newUser
     }
 
-    static async getAll() {
-        const { data, error } = await supabase
-        .from('users')
-        .select('id, first_name, last_name, email, phone, address, created_at')
+    static async getAll(filters) {
+        let query = supabase.from('users').select('id, first_name, last_name, email, phone, address, created_at')
+        
+        if(filters?.email) {
+            query = query.eq('email', filters.email)
+        }
+
+        const { data, error } = await query
 
         if(error) throw new Error(error)
 
@@ -120,17 +124,17 @@ class UserModel {
         return user
     }
 
-    static async getUserByEmail(email) {
-        const { data: user, error } = await supabase
-        .from('users')
-        .select('id, first_name, last_name, email, phone, address, created_at')
-        .eq('email', email)
-        .single()
+    // static async getUserByEmail(email) {
+    //     const { data: user, error } = await supabase
+    //     .from('users')
+    //     .select('id, first_name, last_name, email, phone, address, created_at')
+    //     .eq('email', email)
+    //     .single()
 
-        if(error) throw new Error(error)
+    //     if(error) throw new Error(error)
 
-        return user
-    }
+    //     return user
+    // }
 
     static async createUser({ 
         first_name,

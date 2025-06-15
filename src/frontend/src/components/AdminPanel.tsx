@@ -50,6 +50,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     const fetchOrders = async () => {
       const ordersRes = await fetch(API_URL + '/orders');
       const ordersData = await ordersRes.json();
+      console.log(ordersData.data)
+      
       setOrders(ordersData.data);
     };
     fetchOrders();
@@ -295,6 +297,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                             <td className="px-6 py-4">
                               <div className="text-sm text-gray-900">
                                 {order.order_items.map((item, index) => (
+                                  
                                   <div key={index} className="mb-1">
                                     {item.type_item} (x{item.quantity})
                                   </div>

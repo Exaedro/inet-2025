@@ -26,26 +26,6 @@ const asyncHandler = (fn) => (req, res, next) => {
 }
 
 /**
- * @route POST /register
- * @desc Registra un nuevo usuario
- * @access Público
- * @param {string} req.body.first_name - Nombre del usuario
- * @param {string} req.body.last_name - Apellido del usuario
- * @param {string} req.body.email - Correo electrónico del usuario
- * @param {string} req.body.password - Contraseña del usuario
- */
-userRouter.post('/register', asyncHandler(userController.register.bind(userController)))
-
-/**
- * @route POST /login
- * @desc Inicia sesión con un usuario existente
- * @access Público
- * @param {string} req.body.email - Correo electrónico del usuario
- * @param {string} req.body.password - Contraseña del usuario
- */
-userRouter.post('/login', asyncHandler(userController.login.bind(userController)))
-
-/**
  * @route GET /users
  * @desc Devuelve todos los usuarios registrados
  * @access Público
@@ -66,7 +46,7 @@ userRouter.get('/:id', asyncHandler(userController.getUserById.bind(userControll
  * @access Público
  * @param {string} req.params.email - Email del usuario
  */
-userRouter.get('/:email', asyncHandler(userController.getUserByEmail.bind(userController)))
+// userRouter.get('/:email', asyncHandler(userController.getUserByEmail.bind(userController)))
 
 /**
  * @route POST /users/:id

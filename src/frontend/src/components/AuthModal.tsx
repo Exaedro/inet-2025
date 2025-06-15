@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { X, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { User as UserType } from '../types';
-import { mockUsers } from '../data/mockData';
+
+import { API_URL } from '../data/mockData';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -20,35 +21,70 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
   });
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('El email no es válido.');
+      return;
+    }
+
     if (isLogin) {
-      // Login logic
-      const user = mockUsers.find(u => u.email === formData.email);
-      if (user) {
+      const userRes = await fetch(API_URL + '/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      })
+      const data = await userRes.json()
+
+      if (!data?.error?.includes('invalid credentials')) {
+        const user: UserType = {
+          id: data.user.id,
+          first_name: data.user.first_name,
+          last_name: data.user.last_name,
+          email: data.user.email,
+          created_at: data.user.created_at,
+          is_admin: data.user.is_admin,
+        };
+
         onLogin(user);
         onClose();
         setFormData({ first_name: '', last_name: '', email: '', password: '' });
       } else {
-        setError('Usuario no encontrado. Intenta registrarte.');
+        setError('El email o la contraseña son incorrectos.');
       }
     } else {
-      // Register logic
-      const existingUser = mockUsers.find(u => u.email === formData.email);
-      if (existingUser) {
+      const existingUserRes = await fetch(API_URL + '/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+      const existingUser = await existingUserRes.json()
+
+      if (existingUser.error) {
         setError('El email ya está registrado. Intenta iniciar sesión.');
       } else {
         const newUser: UserType = {
-          id: mockUsers.length + 1,
+          id: existingUser.data.id,
           first_name: formData.first_name,
           last_name: formData.last_name,
           email: formData.email,
           created_at: new Date().toISOString(),
           is_admin: false,
         };
-        mockUsers.push(newUser);
         onLogin(newUser);
         onClose();
         setFormData({ first_name: '', last_name: '', email: '', password: '' });
