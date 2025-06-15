@@ -70,83 +70,67 @@ function App() {
     fetchData();
   }, [currentProductType]);
 
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const res = await fetch(API_URL + '/auth/me', {
-          credentials: 'include',
-        });
-  
-        if (!res.ok) throw new Error('No session');
-  
-        const { user } = await res.json();
-        setCurrentUser(user);
-      } catch (err) {
-        setCurrentUser(null);
-      }
-    };
-  
-    fetchCurrentUser();
-  }, []);
-  
   // Filtrar productos según la búsqueda y el tipo
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredProducts(products);
-      return;
-    }
-
-    const filtered = products.filter(product => {
-      const searchLower = searchQuery.toLowerCase();
-
-      switch (currentProductType) {
-        case 'flight':
-          const flight = product as Flight;
-          const originAirport = airports.find(a => a.id === flight.origin_id);
-          const destinyAirport = airports.find(a => a.id === flight.destiny_id);
-          const originCity = cities.find(c => c.id === originAirport?.city_id);
-          const destinyCity = cities.find(c => c.id === destinyAirport?.city_id);
-          return (
-            originCity?.name.toLowerCase().includes(searchLower) ||
-            destinyCity?.name.toLowerCase().includes(searchLower) ||
-            flight.class.toLowerCase().includes(searchLower)
-          );
-
-        case 'hotel':
-          const hotel = product as Hotel;
-          const hotelCity = cities.find(c => c.id === hotel.city_id);
-          return (
-            hotel.name.toLowerCase().includes(searchLower) ||
-            hotelCity?.name.toLowerCase().includes(searchLower) ||
-            hotel.address.toLowerCase().includes(searchLower)
-          );
-
-        case 'package':
-          const pkg = product as Package;
-          const pkgCity = cities.find(c => c.id === pkg.city_destiny_id);
-          return (
-            pkg.name.toLowerCase().includes(searchLower) ||
-            pkg.description.toLowerCase().includes(searchLower) ||
-            pkgCity?.name.toLowerCase().includes(searchLower)
-          );
-
-        case 'car':
-          const car = product as Car;
-          const carCity = cities.find(c => c.id === car.city_id);
-          const brand = brands.find(b => b.id === car.brand_id);
-          return (
-            car.model.toLowerCase().includes(searchLower) ||
-            brand?.name.toLowerCase().includes(searchLower) ||
-            carCity?.name.toLowerCase().includes(searchLower)
-          );
-
-        default:
-          return false;
+    const fetchAndFilter = async () => {
+      if (!searchQuery.trim()) {
+        setFilteredProducts(products);
+        return;
       }
-    });
 
-    setFilteredProducts(filtered);
-  }, [searchQuery, currentProductType]);
+      // Buscar ciudades por nombre usando la API
+      let cityIds: number[] = [];
+      try {
+        const res = await fetch(`${API_URL}/cities/search?name=${encodeURIComponent(searchQuery)}`);
+        if (res.ok) {
+          const data = await res.json();
+          // Suponiendo que la respuesta es un array de ciudades
+          cityIds = (Array.isArray(data) ? data : data.data || []).map((c: any) => c.id);
+        }
+      } catch (err) {
+        // Si hay error, no filtrar por ciudad
+        cityIds = [];
+      }
+
+      // Verificación defensiva para arrays
+      const safeAirports = Array.isArray(airports) ? airports : [];
+      const filtered = products.filter(product => {
+        switch (currentProductType) {
+          case 'flight': {
+            const flight = product as Flight;
+            const originAirport = safeAirports.find(a => a.id === flight.origin_id);
+            const destinyAirport = safeAirports.find(a => a.id === flight.destiny_id);
+            const originCityId = originAirport?.city_id;
+            const destinyCityId = destinyAirport?.city_id;
+            return (
+              (originCityId && cityIds.includes(originCityId)) ||
+              (destinyCityId && cityIds.includes(destinyCityId))
+            );
+          }
+          case 'hotel': {
+            const hotel = product as Hotel;
+            const hotelCityId = hotel.city_id;
+            return hotelCityId && cityIds.includes(hotelCityId);
+          }
+          case 'package': {
+            const pkg = product as Package;
+            const pkgCityId = pkg.city_destiny_id;
+            return pkgCityId && cityIds.includes(pkgCityId);
+          }
+          case 'car': {
+            const car = product as Car;
+            const carCityId = car.city_id;
+            return carCityId && cityIds.includes(carCityId);
+          }
+          default:
+            return false;
+        }
+      });
+      setFilteredProducts(filtered);
+    };
+
+    fetchAndFilter();
+  }, [searchQuery, currentProductType, products, airports, cities, brands]);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
@@ -319,7 +303,7 @@ function App() {
         </div>
 
         <ProductGrid
-          products={products}
+          products={filteredProducts}
           productType={getProductTypeForGrid()}
           onAddToCart={handleAddToCart}
         />
